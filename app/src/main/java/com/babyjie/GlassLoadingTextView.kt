@@ -51,8 +51,6 @@ class GlassLoadingTextView @JvmOverloads constructor(
     private var charPositions: FloatArray = floatArrayOf()
     private var textBaseline: Float = 0f
     private var totalTextWidth: Float = 0f
-
-    // 文字区域的上下边界（用于加载条的绘制范围）
     private var textTop: Float = 0f
     private var textBottom: Float = 0f
 
@@ -65,10 +63,11 @@ class GlassLoadingTextView @JvmOverloads constructor(
         setBackgroundColor(Color.TRANSPARENT)
     }
 
-    // 重写测量，让 View 的高度恰好包裹文字（顶部留少量余地）
+    // 测量高度，使View恰好包裹文字
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val fontMetrics = textPaint.fontMetrics
-        val desiredHeight = (fontMetrics.descent - fontMetrics.ascent).toInt() + paddingTop + paddingBottom + 10
+        textPaint.textSize = textSize
+        val fm = textPaint.fontMetrics
+        val desiredHeight = (fm.descent - fm.ascent).toInt() + paddingTop + paddingBottom + 10
         val h = resolveSize(desiredHeight, heightMeasureSpec)
         setMeasuredDimension(measuredWidth, h)
     }
@@ -95,13 +94,11 @@ class GlassLoadingTextView @JvmOverloads constructor(
         }
         totalTextWidth = totalW
 
-        // 使文字紧贴 View 底部，descent 是基线到文字最低点的距离
+        // 文字基线紧贴View底部，留出少量边距
         val fm = textPaint.fontMetrics
-        textBaseline = height.toFloat() - fm.descent - paddingBottom - 5f  // 少量间距
-
-        // 保存文字区域用于加载条绘制
-        textTop = textBaseline + fm.ascent   // 文字顶部（ascent 是负值）
-        textBottom = textBaseline + fm.descent // 文字底部
+        textBaseline = height.toFloat() - fm.descent - paddingBottom - 5f
+        textTop = textBaseline + fm.ascent
+        textBottom = textBaseline + fm.descent
     }
 
     fun startLoading(durationMs: Long = 5000L, onDisappeared: (() -> Unit)? = null) {
@@ -171,7 +168,7 @@ class GlassLoadingTextView @JvmOverloads constructor(
         val chars = text.toCharArray()
         val startX = width / 2f - totalTextWidth / 2f
 
-        // 1. 彩色加载条
+        // 1. 彩色加载条（颜色会随字母消失而同步淡出）
         drawLoader(canvas, chars, startX)
 
         // 2. 外圈描边 + 光晕
@@ -182,16 +179,17 @@ class GlassLoadingTextView @JvmOverloads constructor(
         val totalW = totalTextWidth
         val loaderWidth = totalW * loadProgress
 
-        // 渐变从 startX 到 startX + totalW
         val gradient = LinearGradient(
             startX, 0f, startX + totalW, 0f,
             loaderColors, null, Shader.TileMode.CLAMP
         )
         fillPaint.shader = gradient
-        fillPaint.alpha = (loaderAlpha * 255).toInt()
+
+        // 计算整体消失进度：取所有字母透明度的最小值，使加载条颜色与字母同步消失
+        val overallAlpha = if (letterAlphas.isNotEmpty()) letterAlphas.minOrNull()!! else 1f
+        fillPaint.alpha = (loaderAlpha * overallAlpha * 255).toInt()
 
         canvas.save()
-        // 构建文字轮廓的裁剪路径
         val clipPath = Path()
         for (i in chars.indices) {
             val x = startX + charPositions[i]
@@ -201,7 +199,6 @@ class GlassLoadingTextView @JvmOverloads constructor(
         textPaint.style = Paint.Style.STROKE
 
         canvas.clipPath(clipPath)
-        // 加载条矩形：只覆盖文字区域的高度范围，避免跑到屏幕其他位置
         val rect = RectF(startX, textTop, startX + loaderWidth, textBottom)
         canvas.drawRect(rect, fillPaint)
         canvas.restore()
