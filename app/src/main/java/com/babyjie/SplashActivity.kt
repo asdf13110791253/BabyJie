@@ -12,6 +12,7 @@ class SplashActivity : AppCompatActivity() {
 
     private var countDownTimer: CountDownTimer? = null
     private var hasJumped = false
+    private var videoDurationMs: Long = 10000L  // 默认10秒，待视频准备好后更新
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,7 +33,14 @@ class SplashActivity : AppCompatActivity() {
 
         val videoPath = "android.resource://${packageName}/${R.raw.babyjielogo}"
         videoView.setVideoURI(Uri.parse(videoPath))
-        videoView.setResizeModeFit()
+        videoView.setResizeModeZoom()  // 或 Fill，根据你的视频比例选择
+
+        // 监听视频准备好，获取真实时长
+        videoView.setOnPreparedListener { durationMs ->
+            videoDurationMs = durationMs
+            // 根据视频实际时长启动倒计时
+            startCountdown(tvSkip)
+        }
 
         videoView.setOnCompletionListener {
             jumpToMain()
@@ -40,35 +48,33 @@ class SplashActivity : AppCompatActivity() {
 
         videoView.start()
 
-        // 初始显示“10”，倒计时从10开始读秒
-        tvSkip.text = "10"
         tvSkip.visibility = View.VISIBLE
-        // 点击事件先不设置，到5秒时才可点击
-
-        // 启动倒计时
-        startCountdown(tvSkip)
+        tvSkip.text = ""  // 初始为空，待倒计时开始会更新
     }
 
     private fun startCountdown(textView: TextView) {
-        countDownTimer = object : CountDownTimer(10000, 1000) {
+        countDownTimer?.cancel()
+        countDownTimer = object : CountDownTimer(videoDurationMs, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 val seconds = millisUntilFinished / 1000
-                if (seconds > 5) {
-                    // 前5秒：显示数字，不可点击
+                val totalSeconds = videoDurationMs / 1000
+                val showSkipAfter = totalSeconds - 5  // 最后5秒显示“跳过”
+
+                if (seconds > showSkipAfter) {
+                    // 前部分显示倒计时数字（不包含最后5秒），且不可点击
                     textView.text = seconds.toString()
-                    textView.setOnClickListener(null) // 移除点击
-                    textView.visibility = View.VISIBLE
-                } else if (seconds in 1..5) {
-                    // 后5秒：显示“跳过”，可点击
+                    textView.setOnClickListener(null)
+                } else {
+                    // 最后5秒显示“跳过”，可点击
                     textView.text = "跳过"
                     textView.setOnClickListener {
                         jumpToMain()
                     }
-                    textView.visibility = View.VISIBLE
                 }
             }
 
             override fun onFinish() {
+                // 倒计时结束（理论上视频也会同时结束），自动跳转
                 jumpToMain()
             }
         }.start()
