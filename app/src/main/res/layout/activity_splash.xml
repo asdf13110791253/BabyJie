@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/splashContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFB6C1"
+    android:background="#000000"
     android:fitsSystemWindows="true">
 
     <VideoView
         android:id="@+id/splashVideoView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="center"
-        android:scaleType="centerCrop" />
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center" />
 
 </FrameLayout>
