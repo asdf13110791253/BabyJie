@@ -2,8 +2,6 @@ package com.babyjie
 
 import android.animation.ObjectAnimator
 import android.content.Intent
-import android.graphics.LinearGradient
-import android.graphics.Shader
 import android.net.Uri
 import android.os.Bundle
 import android.os.CountDownTimer
@@ -51,7 +49,7 @@ class SplashActivity : AppCompatActivity() {
         letterViews.add(findViewById(R.id.tvLetter6))
         letterViews.add(findViewById(R.id.tvLetter7))
 
-        // 关键步骤：给每个字母设置“外圈透明、内有颜色”的顶级特效
+        // 给每个字母设置高级透明光晕效果
         for (letter in letterViews) {
             applyPremiumTextEffect(letter)
         }
@@ -63,10 +61,10 @@ class SplashActivity : AppCompatActivity() {
         videoView.setOnPreparedListener { durationMs ->
             videoDurationMs = durationMs
             startCountdown(tvSkip)
-            // 视频准备好后延迟 800ms 开始动画
+            // 视频准备好后延迟 800ms 开始字母动画
             handler.postDelayed({
                 startPremiumLetterAnimation()
-            }, 800)
+            }, 800L)
         }
 
         videoView.setOnCompletionListener {
@@ -84,31 +82,25 @@ class SplashActivity : AppCompatActivity() {
      * 核心：打造“外圈透明、内有颜色”的顶级文字效果
      */
     private fun applyPremiumTextEffect(textView: TextView) {
-        // 设置文字颜色为白色（内部颜色）
+        // 文字内部颜色：纯白
         textView.setTextColor(0xFFFFFFFF.toInt())
-
-        // 设置多层阴影，制造“外圈透明发光”的感觉
-        // 第一层：紧贴文字的深色阴影，增加对比度
-        textView.setShadowLayer(2f, 0f, 0f, 0x55000000)
-        
-        // 注意：Android 原生只能设一层 shadow，但我们可以通过调整 radius 和颜色
-        // 让它看起来像“外层透明光晕”
-        // 这里在动画里会动态改变，所以初始设一个柔和的光晕
+        // 外层透明光晕：大半径、半透明白色阴影，制造“外圈透明”感
         textView.setShadowLayer(18f, 0f, 0f, 0x80FFFFFF)
     }
 
     /**
-     * 顶级动画流程：依次出现 -> 停留 -> 依次消失
+     * 动画流程：依次出现 -> 停留 -> 依次消失
      */
     private fun startPremiumLetterAnimation() {
         if (isAnimationCancelled) return
 
         val appearInterval = 180L  // 每个字母出现间隔
-        val stayDuration = 3000L   // 全部出现后停留多久
+        val stayDuration = 3000L   // 全部出现后停留 3 秒
         val disappearInterval = 150L // 消失间隔
 
         // 1. 依次出现（淡入 + 轻微放大）
         for (i in letterViews.indices) {
+            val delay = appearInterval * i.toLong()
             handler.postDelayed({
                 if (isAnimationCancelled) return@postDelayed
                 val letter = letterViews[i]
@@ -132,18 +124,19 @@ class SplashActivity : AppCompatActivity() {
                 alphaAnim.start()
                 scaleXAnim.start()
                 scaleYAnim.start()
-            }, appearInterval * i)
+            }, delay)
         }
 
-        // 2. 停留一段时间后，依次消失（淡出 + 轻微缩小并上浮）
-        val disappearStartTime = appearInterval * letterViews.size + stayDuration
+        // 2. 计算消失动画的开始时间
+        val disappearStartTime = appearInterval * letterViews.size.toLong() + stayDuration
         handler.postDelayed({
             if (isAnimationCancelled) return@postDelayed
             for (i in letterViews.indices) {
+                val delay = disappearInterval * i.toLong()
                 handler.postDelayed({
                     if (isAnimationCancelled) return@postDelayed
                     val letter = letterViews[i]
-                    
+
                     val alphaAnim = ObjectAnimator.ofFloat(letter, "alpha", 1f, 0f)
                     val scaleXAnim = ObjectAnimator.ofFloat(letter, "scaleX", 1f, 0.6f)
                     val scaleYAnim = ObjectAnimator.ofFloat(letter, "scaleY", 1f, 0.6f)
@@ -163,7 +156,7 @@ class SplashActivity : AppCompatActivity() {
                     scaleXAnim.start()
                     scaleYAnim.start()
                     transYAnim.start()
-                }, disappearInterval * i)
+                }, delay)
             }
         }, disappearStartTime)
     }
