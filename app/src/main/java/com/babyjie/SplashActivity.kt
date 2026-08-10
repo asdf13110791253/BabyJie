@@ -1,14 +1,15 @@
 package com.babyjie
 
+import android.animation.Animator
+import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.content.Intent
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.os.CountDownTimer
-import android.os.Handler
-import android.os.Looper
 import android.view.View
-import android.view.animation.DecelerateInterpolator
 import android.view.animation.OvershootInterpolator
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -20,12 +21,12 @@ class SplashActivity : AppCompatActivity() {
     private var videoDurationMs: Long = 10000L
 
     private val letterViews = mutableListOf<TextView>()
-    private val handler = Handler(Looper.getMainLooper())
-    private var isAnimationCancelled = false
+    private var masterAnimator: AnimatorSet? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // 全屏沉浸
         window.decorView.systemUiVisibility = (
             View.SYSTEM_UI_FLAG_FULLSCREEN
             or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
@@ -40,7 +41,7 @@ class SplashActivity : AppCompatActivity() {
         val videoView = findViewById<ExoPlayerVideoView>(R.id.exoPlayerVideoView)
         val tvSkip = findViewById<TextView>(R.id.tvSkipCountdown)
 
-        // 收集字母视图
+        // 收集字母视图（你的布局里必须有这 7 个 id）
         letterViews.add(findViewById(R.id.tvLetter1))
         letterViews.add(findViewById(R.id.tvLetter2))
         letterViews.add(findViewById(R.id.tvLetter3))
@@ -49,118 +50,115 @@ class SplashActivity : AppCompatActivity() {
         letterViews.add(findViewById(R.id.tvLetter6))
         letterViews.add(findViewById(R.id.tvLetter7))
 
-        // 给每个字母设置“外圈透明、内有颜色”的效果
+        // 初始化字母状态：隐藏并设置顶级发光效果
         for (letter in letterViews) {
-            applyPremiumTextEffect(letter)
+            letter.apply {
+                alpha = 0f
+                scaleX = 0.0f
+                scaleY = 0.0f
+                visibility = View.VISIBLE  // 可见，但透明
+                // 设置多层阴影制造霓虹光晕
+                setShadowLayer(20f, 0f, 0f, Color.parseColor("#80FF6EC7")) // 外层粉色光晕
+                // 注意：Android 原生只支持一层阴影，但我们可以通过代码动态添加第二层，这里用外层足以
+            }
         }
 
+        // 视频设置
         val videoPath = "android.resource://${packageName}/${R.raw.babyjielogo}"
         videoView.setVideoURI(Uri.parse(videoPath))
-        videoView.setResizeModeZoom()
+        videoView.setResizeModeZoom()  // 全屏
 
         videoView.setOnPreparedListener { durationMs ->
             videoDurationMs = durationMs
             startCountdown(tvSkip)
-            // 视频准备好后延迟 800ms 开始字母动画
-            handler.postDelayed({
-                startPremiumLetterAnimation()
-            }, 800L)
+            // 视频准备好后 800 毫秒开始品牌动画
+            startPremiumLetterAnimation(800L)
         }
 
-        videoView.setOnCompletionListener {
-            jumpToMain()
-        }
+        videoView.setOnCompletionListener { jumpToMain() }
 
         videoView.start()
 
-        tvSkip.visibility = View.VISIBLE
-        tvSkip.text = ""
-        tvSkip.setOnClickListener(null)
+        // 跳过按钮初始化
+        tvSkip.apply {
+            visibility = View.VISIBLE
+            text = ""
+            setOnClickListener(null)
+        }
     }
 
     /**
-     * “外圈透明、内有颜色”的顶级文字效果
+     * 顶级品牌字母动画：依次弹入 → 呼吸发光 → 依次淡出消失
+     * @param startDelayMs 延迟开始时间 (毫秒)
      */
-    private fun applyPremiumTextEffect(textView: TextView) {
-        // 文字内部颜色：纯白
-        textView.setTextColor(0xFFFFFFFF.toInt())
-        // 外层透明光晕：大半径、半透明白色阴影，营造通透感
-        textView.setShadowLayer(18f, 0f, 0f, 0x80FFFFFF)
-    }
+    private fun startPremiumLetterAnimation(startDelayMs: Long) {
+        val appearInterval = 160L        // 每个字母出现间隔
+        val appearDuration = 600L        // 出现动画时长
+        val stayDuration = 2500L         // 停留/呼吸时间
+        val disappearInterval = 140L     // 消失间隔
+        val disappearDuration = 500L     // 消失动画时长
 
-    /**
-     * 动画流程：依次出现 -> 停留 -> 依次消失
-     */
-    private fun startPremiumLetterAnimation() {
-        if (isAnimationCancelled) return
+        // ---- 1. 出现动画：依次弹入 ----
+        val appearSets = letterViews.mapIndexed { index, letter ->
+            AnimatorSet().apply {
+                playTogether(
+                    ObjectAnimator.ofFloat(letter, "alpha", 0f, 1f).apply { duration = appearDuration },
+                    ObjectAnimator.ofFloat(letter, "scaleX", 0.0f, 1f).apply {
+                        duration = appearDuration
+                        interpolator = OvershootInterpolator(1.2f)  // 轻微弹簧
+                    },
+                    ObjectAnimator.ofFloat(letter, "scaleY", 0.0f, 1f).apply {
+                        duration = appearDuration
+                        interpolator = OvershootInterpolator(1.2f)
+                    }
+                )
+                startDelay = appearInterval * index  // 依次出现
+            }
+        }.toSet() // 转为 Set 以使用 playTogether
 
-        val appearInterval = 180L  // 每个字母出现间隔
-        val stayDuration = 3000L   // 全部出现后停留 3 秒
-        val disappearInterval = 150L // 消失间隔
+        val appearSet = AnimatorSet().apply { playTogether(appearSets) }
 
-        // 1. 依次出现（淡入 + 轻微放大）
-        for (i in letterViews.indices) {
-            val delay = appearInterval * i.toLong()
-            handler.postDelayed({
-                if (isAnimationCancelled) return@postDelayed
-                val letter = letterViews[i]
-                letter.alpha = 0f
-                letter.scaleX = 0.5f
-                letter.scaleY = 0.5f
-                letter.visibility = View.VISIBLE
-
-                val alphaAnim = ObjectAnimator.ofFloat(letter, "alpha", 0f, 1f)
-                val scaleXAnim = ObjectAnimator.ofFloat(letter, "scaleX", 0.5f, 1f)
-                val scaleYAnim = ObjectAnimator.ofFloat(letter, "scaleY", 0.5f, 1f)
-
-                alphaAnim.interpolator = DecelerateInterpolator()
-                scaleXAnim.interpolator = DecelerateInterpolator()
-                scaleYAnim.interpolator = DecelerateInterpolator()
-
-                alphaAnim.duration = 500
-                scaleXAnim.duration = 500
-                scaleYAnim.duration = 500
-
-                alphaAnim.start()
-                scaleXAnim.start()
-                scaleYAnim.start()
-            }, delay)
+        // ---- 2. 呼吸发光动画（在停留期间循环） ----
+        val breathAnimator = ValueAnimator.ofFloat(20f, 35f, 20f).apply {
+            duration = 1500
+            repeatCount = ValueAnimator.INFINITE
+            repeatMode = ValueAnimator.REVERSE
+            addUpdateListener { animator ->
+                val radius = animator.animatedValue as Float
+                for (letter in letterViews) {
+                    letter.setShadowLayer(radius, 0f, 0f, Color.parseColor("#80FF6EC7"))
+                }
+            }
         }
 
-        // 2. 计算消失动画开始的时间（毫秒，转为 Int 避免类型错误）
-        val disappearStartTime = (appearInterval * letterViews.size + stayDuration).toInt()
-        handler.postDelayed({
-            if (isAnimationCancelled) return@postDelayed
-            for (i in letterViews.indices) {
-                val delay = disappearInterval * i.toLong()
-                handler.postDelayed({
-                    if (isAnimationCancelled) return@postDelayed
-                    val letter = letterViews[i]
+        // 停留阶段：呼吸动画 + 固定时长
+        val stayAnim = AnimatorSet().apply {
+            play(breathAnimator)
+            this.duration = stayDuration
+        }
 
-                    val alphaAnim = ObjectAnimator.ofFloat(letter, "alpha", 1f, 0f)
-                    val scaleXAnim = ObjectAnimator.ofFloat(letter, "scaleX", 1f, 0.6f)
-                    val scaleYAnim = ObjectAnimator.ofFloat(letter, "scaleY", 1f, 0.6f)
-                    val transYAnim = ObjectAnimator.ofFloat(letter, "translationY", 0f, -30f)
-
-                    alphaAnim.interpolator = DecelerateInterpolator()
-                    scaleXAnim.interpolator = DecelerateInterpolator()
-                    scaleYAnim.interpolator = DecelerateInterpolator()
-                    transYAnim.interpolator = DecelerateInterpolator()
-
-                    alphaAnim.duration = 400
-                    scaleXAnim.duration = 400
-                    scaleYAnim.duration = 400
-                    transYAnim.duration = 400
-
-                    alphaAnim.start()
-                    scaleXAnim.start()
-                    scaleYAnim.start()
-                    transYAnim.start()
-                }, delay)
+        // ---- 3. 消失动画：依次淡出 + 上浮 ----
+        val disappearSets = letterViews.mapIndexed { index, letter ->
+            AnimatorSet().apply {
+                playTogether(
+                    ObjectAnimator.ofFloat(letter, "alpha", 1f, 0f).apply { duration = disappearDuration },
+                    ObjectAnimator.ofFloat(letter, "translationY", 0f, -25f).apply { duration = disappearDuration }
+                )
+                startDelay = disappearInterval * index
             }
-        }, disappearStartTime.toLong())  // 这里转成 Long 以满足 Handler 原始参数类型
+        }.toSet()
+
+        val disappearSet = AnimatorSet().apply { playTogether(disappearSets) }
+
+        // ---- 4. 总时间轴：顺序执行 ----
+        masterAnimator = AnimatorSet().apply {
+            playSequentially(appearSet, stayAnim, disappearSet)
+            this.startDelay = startDelayMs
+            start()
+        }
     }
 
+    // ========== 倒计时 ==========
     private fun startCountdown(textView: TextView) {
         countDownTimer?.cancel()
         countDownTimer = object : CountDownTimer(videoDurationMs, 1000) {
@@ -172,59 +170,37 @@ class SplashActivity : AppCompatActivity() {
                 if (seconds > showSkipAfter) {
                     textView.text = seconds.toString()
                     textView.setOnClickListener(null)
-                    pulseAnimation(textView)
+                    // 轻微脉冲
+                    ObjectAnimator.ofFloat(textView, "scaleX", 1f, 1.05f, 1f).apply { duration = 200; start() }
+                    ObjectAnimator.ofFloat(textView, "scaleY", 1f, 1.05f, 1f).apply { duration = 200; start() }
                 } else {
                     if (textView.text != "跳过") {
                         textView.text = "跳过"
-                        textView.setOnClickListener {
-                            jumpToMain()
-                        }
-                        skipAppearAnimation(textView)
+                        textView.setOnClickListener { jumpToMain() }
+                        // 弹性出现
+                        textView.scaleX = 0.5f
+                        textView.scaleY = 0.5f
+                        textView.animate().scaleX(1f).scaleY(1f).setDuration(350)
+                            .setInterpolator(OvershootInterpolator(0.8f)).start()
                     }
                 }
             }
 
-            override fun onFinish() {
-                jumpToMain()
-            }
+            override fun onFinish() { jumpToMain() }
         }.start()
-    }
-
-    private fun pulseAnimation(view: View) {
-        val animX = ObjectAnimator.ofFloat(view, "scaleX", 1f, 1.03f, 1f)
-        animX.duration = 300
-        animX.interpolator = DecelerateInterpolator()
-        animX.start()
-        val animY = ObjectAnimator.ofFloat(view, "scaleY", 1f, 1.03f, 1f)
-        animY.duration = 300
-        animY.interpolator = DecelerateInterpolator()
-        animY.start()
-    }
-
-    private fun skipAppearAnimation(view: View) {
-        view.scaleX = 0.6f
-        view.scaleY = 0.6f
-        view.animate()
-            .scaleX(1f)
-            .scaleY(1f)
-            .setDuration(350)
-            .setInterpolator(OvershootInterpolator(0.8f))
-            .start()
     }
 
     private fun jumpToMain() {
         if (hasJumped) return
         hasJumped = true
-        isAnimationCancelled = true
         countDownTimer?.cancel()
-        handler.removeCallbacksAndMessages(null)
+        masterAnimator?.cancel()
         startActivity(Intent(this, MainActivity::class.java))
         finish()
     }
 
     override fun onDestroy() {
-        isAnimationCancelled = true
-        handler.removeCallbacksAndMessages(null)
+        masterAnimator?.cancel()
         countDownTimer?.cancel()
         super.onDestroy()
     }
