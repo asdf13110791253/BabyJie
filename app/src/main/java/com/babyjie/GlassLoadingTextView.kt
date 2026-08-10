@@ -36,7 +36,7 @@ class GlassLoadingTextView @JvmOverloads constructor(
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
         textAlign = Paint.Align.CENTER
-        typeface = Typeface.create("sans-serif", Typeface.BOLD) // 使用系统粗体
+        typeface = Typeface.create("sans-serif", Typeface.BOLD)
     }
     private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
@@ -91,7 +91,6 @@ class GlassLoadingTextView @JvmOverloads constructor(
         onAllDisappearedListener = onDisappeared
         loadProgress = 0f
         isDisappearing = false
-        // 初始化字母透明度
         letterAlphas.clear()
         for (i in text.indices) {
             letterAlphas.add(1f)
@@ -105,7 +104,7 @@ class GlassLoadingTextView @JvmOverloads constructor(
                 loadProgress = animator.animatedValue as Float
                 invalidate()
             }
-            addListener(object : Animator.AnimatorListener {
+            addListener(object : android.animation.Animator.AnimatorListener {
                 override fun onAnimationStart(animation: android.animation.Animator) {}
                 override fun onAnimationEnd(animation: android.animation.Animator) {
                     postDelayed({
@@ -133,7 +132,7 @@ class GlassLoadingTextView @JvmOverloads constructor(
                     invalidate()
                 }
                 if (i == total - 1) {
-                    addListener(object : Animator.AnimatorListener {
+                    addListener(object : android.animation.Animator.AnimatorListener {
                         override fun onAnimationStart(animation: android.animation.Animator) {}
                         override fun onAnimationEnd(animation: android.animation.Animator) {
                             isDisappearing = false
