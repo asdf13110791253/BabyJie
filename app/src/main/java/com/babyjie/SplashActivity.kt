@@ -58,7 +58,7 @@ class SplashActivity : AppCompatActivity() {
         videoView.setOnPreparedListener { durationMs ->
             videoDurationMs = durationMs
             startCountdown(tvSkip)
-            startElegantBrandAnimation()
+            startRefinedAnimation()
         }
 
         videoView.setOnCompletionListener {
@@ -72,75 +72,72 @@ class SplashActivity : AppCompatActivity() {
         tvSkip.setOnClickListener(null)
     }
 
-    private fun startElegantBrandAnimation() {
+    private fun startRefinedAnimation() {
         if (brandAnimSet != null) return
 
         val appearAnimators = mutableListOf<Animator>()
 
-        // 逐个字母柔和出现（淡入 + 轻微放大，无弹跳）
+        // 1. 打字机式出现：每个字母单独淡入，轻微上浮
         for (i in letterViews.indices) {
             val letter = letterViews[i]
             letter.alpha = 0f
-            letter.scaleX = 0.8f
-            letter.scaleY = 0.8f
+            letter.translationY = 15f // 初始向下偏移一点
 
             val alphaAnim = ObjectAnimator.ofFloat(letter, "alpha", 0f, 1f)
-            val scaleXAnim = ObjectAnimator.ofFloat(letter, "scaleX", 0.8f, 1f)
-            val scaleYAnim = ObjectAnimator.ofFloat(letter, "scaleY", 0.8f, 1f)
+            val transYAnim = ObjectAnimator.ofFloat(letter, "translationY", 15f, 0f)
 
             alphaAnim.interpolator = DecelerateInterpolator()
-            scaleXAnim.interpolator = DecelerateInterpolator()
-            scaleYAnim.interpolator = DecelerateInterpolator()
+            transYAnim.interpolator = DecelerateInterpolator()
 
             val letterSet = AnimatorSet()
-            letterSet.playTogether(alphaAnim, scaleXAnim, scaleYAnim)
-            letterSet.duration = 500
-            letterSet.startDelay = (i * 180L)
+            letterSet.playTogether(alphaAnim, transYAnim)
+            letterSet.duration = 600
+            letterSet.startDelay = (i * 150L) // 打字机节奏
             appearAnimators.add(letterSet)
         }
 
         val appearSet = AnimatorSet()
         appearSet.playTogether(appearAnimators)
 
-        // 柔和呼吸发光（阴影半径在 6-16 之间缓慢变化）
-        val breathAnimator = ValueAnimator.ofFloat(6f, 16f, 6f).apply {
-            duration = 2800
+        // 2. 精致呼吸发光：金色光晕在 8px - 20px 间缓慢变化
+        val breathAnimator = ValueAnimator.ofFloat(8f, 20f, 8f).apply {
+            duration = 2500
             repeatCount = ValueAnimator.INFINITE
             repeatMode = ValueAnimator.REVERSE
             interpolator = DecelerateInterpolator()
             addUpdateListener { animator ->
                 val radius = animator.animatedValue as Float
                 for (letter in letterViews) {
-                    letter.setShadowLayer(radius, 0f, 0f, letter.shadowColor)
+                    // 使用更高级的阴影颜色：半透明白色
+                    letter.setShadowLayer(radius, 0f, 0f, 0x40FFFFFF)
                 }
             }
         }
 
-        // 逆序柔和消失（淡出 + 轻微缩小）
+        // 3. 优雅消失：按顺序淡出，并有轻微下移
         val disappearAnimators = mutableListOf<Animator>()
-        for (i in letterViews.size - 1 downTo 0) {
+        for (i in letterViews.indices) {
             val letter = letterViews[i]
             val alphaAnim = ObjectAnimator.ofFloat(letter, "alpha", 1f, 0f)
-            val scaleXAnim = ObjectAnimator.ofFloat(letter, "scaleX", 1f, 0.8f)
-            val scaleYAnim = ObjectAnimator.ofFloat(letter, "scaleY", 1f, 0.8f)
+            val transYAnim = ObjectAnimator.ofFloat(letter, "translationY", 0f, -15f) // 轻微上浮消失
 
             val letterDisappear = AnimatorSet()
-            letterDisappear.playTogether(alphaAnim, scaleXAnim, scaleYAnim)
-            letterDisappear.duration = 400
-            letterDisappear.startDelay = ((letterViews.size - 1 - i) * 160L)
+            letterDisappear.playTogether(alphaAnim, transYAnim)
+            letterDisappear.duration = 500
+            letterDisappear.startDelay = (i * 120L) // 正序消失
             disappearAnimators.add(letterDisappear)
         }
 
         val disappearSet = AnimatorSet()
         disappearSet.playTogether(disappearAnimators)
 
-        // 总控：出现 -> 呼吸约3.5秒 -> 消失
+        // 总控：出现 -> 停留呼吸 3 秒 -> 消失
         brandAnimSet = AnimatorSet()
         brandAnimSet!!.playSequentially(
             appearSet,
             AnimatorSet().apply {
-                play(breathAnimator).after(300)
-                duration = 3500
+                play(breathAnimator).after(200)
+                duration = 3000
             },
             disappearSet
         )
@@ -165,7 +162,6 @@ class SplashActivity : AppCompatActivity() {
                         textView.setOnClickListener {
                             jumpToMain()
                         }
-                        // 跳过按钮出现时仍保留一点弹性，因为它是可交互的，吸引点击
                         skipAppearAnimation(textView)
                     }
                 }
@@ -195,7 +191,7 @@ class SplashActivity : AppCompatActivity() {
             .scaleX(1f)
             .scaleY(1f)
             .setDuration(350)
-            .setInterpolator(OvershootInterpolator(0.8f))  // 轻微弹性，不刺眼
+            .setInterpolator(OvershootInterpolator(0.8f))
             .start()
     }
 
