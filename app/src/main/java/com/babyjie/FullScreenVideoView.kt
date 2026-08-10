@@ -75,7 +75,7 @@ class FullScreenVideoView @JvmOverloads constructor(
         val matrix = Matrix()
         val scaleX = viewWidth.toFloat() / videoWidth
         val scaleY = viewHeight.toFloat() / videoHeight
-        val scale = maxOf(scaleX, scaleY)
+        val scale = minOf(scaleX, scaleY)   // 这里改成 minOf，完整显示不裁剪
 
         matrix.setScale(scale, scale, viewWidth / 2f, viewHeight / 2f)
         textureView.setTransform(matrix)
