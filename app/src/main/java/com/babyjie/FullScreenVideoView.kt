@@ -1,13 +1,13 @@
 package com.babyjie
 
 import android.content.Context
+import android.graphics.Matrix
 import android.media.MediaPlayer
 import android.net.Uri
 import android.util.AttributeSet
-import android.view.Gravity
+import android.view.Surface
 import android.view.TextureView
 import android.widget.FrameLayout
-import android.graphics.Matrix
 
 class FullScreenVideoView @JvmOverloads constructor(
     context: Context,
@@ -22,19 +22,14 @@ class FullScreenVideoView @JvmOverloads constructor(
 
     init {
         textureView.layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
-        textureView.gravity = Gravity.CENTER
         addView(textureView)
 
         textureView.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
             override fun onSurfaceTextureAvailable(surface: android.graphics.SurfaceTexture, width: Int, height: Int) {
                 prepareVideo(surface)
             }
-            override fun onSurfaceTextureSizeChanged(surface: android.graphics.SurfaceTexture, width: Int, height: Int) {
-                // Not needed
-            }
-            override fun onSurfaceTextureDestroyed(surface: android.graphics.SurfaceTexture): Boolean {
-                return true
-            }
+            override fun onSurfaceTextureSizeChanged(surface: android.graphics.SurfaceTexture, width: Int, height: Int) {}
+            override fun onSurfaceTextureDestroyed(surface: android.graphics.SurfaceTexture): Boolean = true
             override fun onSurfaceTextureUpdated(surface: android.graphics.SurfaceTexture) {}
         }
     }
@@ -59,7 +54,7 @@ class FullScreenVideoView @JvmOverloads constructor(
         mediaPlayer?.release()
         mediaPlayer = MediaPlayer().apply {
             setDataSource(context, uri)
-            setSurface(android.view.Surface(surface))
+            setSurface(Surface(surface))
             setOnPreparedListener { mp ->
                 mp.isLooping = false
                 updateTextureViewScale(mp.videoWidth, mp.videoHeight)
