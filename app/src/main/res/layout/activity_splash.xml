@@ -4,6 +4,7 @@
     android:layout_height="match_parent"
     android:background="#FFB6C1">
 
+    <!-- 视频层 -->
     <com.babyjie.ExoPlayerVideoView
         android:id="@+id/exoPlayerVideoView"
         android:layout_width="match_parent"
@@ -23,7 +24,7 @@
         android:layout_gravity="bottom"
         android:background="@drawable/gradient_bottom" />
 
-    <!-- 炫彩字母区域 -->
+    <!-- 彩色逐字品牌动画区域（保留之前的效果，如果不想要可以删除） -->
     <LinearLayout
         android:id="@+id/llBrand"
         android:layout_width="wrap_content"
@@ -161,5 +162,15 @@
         android:letterSpacing="0.03"
         android:fontFamily="sans-serif-medium"
         android:visibility="visible" />
+
+    <!-- 底部玻璃文字 + 彩色加载条 -->
+    <com.babyjie.GlassLoadingTextView
+        android:id="@+id/glassLoadingText"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="10dp"
+        android:text="Babyje"
+        android:textSize="170sp" />
 
 </FrameLayout>
