@@ -49,7 +49,7 @@ class SplashActivity : AppCompatActivity() {
         letterViews.add(findViewById(R.id.tvLetter6))
         letterViews.add(findViewById(R.id.tvLetter7))
 
-        // 给每个字母设置高级透明光晕效果
+        // 给每个字母设置“外圈透明、内有颜色”的效果
         for (letter in letterViews) {
             applyPremiumTextEffect(letter)
         }
@@ -79,12 +79,12 @@ class SplashActivity : AppCompatActivity() {
     }
 
     /**
-     * 核心：打造“外圈透明、内有颜色”的顶级文字效果
+     * “外圈透明、内有颜色”的顶级文字效果
      */
     private fun applyPremiumTextEffect(textView: TextView) {
         // 文字内部颜色：纯白
         textView.setTextColor(0xFFFFFFFF.toInt())
-        // 外层透明光晕：大半径、半透明白色阴影，制造“外圈透明”感
+        // 外层透明光晕：大半径、半透明白色阴影，营造通透感
         textView.setShadowLayer(18f, 0f, 0f, 0x80FFFFFF)
     }
 
@@ -127,8 +127,8 @@ class SplashActivity : AppCompatActivity() {
             }, delay)
         }
 
-        // 2. 计算消失动画的开始时间
-        val disappearStartTime = appearInterval * letterViews.size.toLong() + stayDuration
+        // 2. 计算消失动画开始的时间（毫秒，转为 Int 避免类型错误）
+        val disappearStartTime = (appearInterval * letterViews.size + stayDuration).toInt()
         handler.postDelayed({
             if (isAnimationCancelled) return@postDelayed
             for (i in letterViews.indices) {
@@ -158,7 +158,7 @@ class SplashActivity : AppCompatActivity() {
                     transYAnim.start()
                 }, delay)
             }
-        }, disappearStartTime)
+        }, disappearStartTime.toLong())  // 这里转成 Long 以满足 Handler 原始参数类型
     }
 
     private fun startCountdown(textView: TextView) {
