@@ -3,7 +3,6 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
         android:label="BabyJie"
         android:supportsRtl="true"
         android:theme="@style/Theme.BabyJie">
