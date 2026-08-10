@@ -1,10 +1,14 @@
 package com.babyjie
 
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.view.View
+import android.view.animation.AccelerateDecelerateInterpolator
+import android.view.animation.OvershootInterpolator
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 
@@ -12,7 +16,7 @@ class SplashActivity : AppCompatActivity() {
 
     private var countDownTimer: CountDownTimer? = null
     private var hasJumped = false
-    private var videoDurationMs: Long = 10000L  // 默认10秒，待视频准备好后更新
+    private var videoDurationMs: Long = 10000L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,15 +34,15 @@ class SplashActivity : AppCompatActivity() {
 
         val videoView = findViewById<ExoPlayerVideoView>(R.id.exoPlayerVideoView)
         val tvSkip = findViewById<TextView>(R.id.tvSkipCountdown)
+        val tvBrand = findViewById<TextView>(R.id.tvBrand)
 
         val videoPath = "android.resource://${packageName}/${R.raw.babyjielogo}"
         videoView.setVideoURI(Uri.parse(videoPath))
-        videoView.setResizeModeZoom()  // 或 Fill，根据你的视频比例选择
+        videoView.setResizeModeZoom()  // 或 Fill，按你的设置
 
-        // 监听视频准备好，获取真实时长
+        // 视频准备好后获取时长并启动倒计时
         videoView.setOnPreparedListener { durationMs ->
             videoDurationMs = durationMs
-            // 根据视频实际时长启动倒计时
             startCountdown(tvSkip)
         }
 
@@ -48,8 +52,19 @@ class SplashActivity : AppCompatActivity() {
 
         videoView.start()
 
+        // 品牌文字淡入动画（1秒后出现，持续1秒）
+        tvBrand.postDelayed({
+            ObjectAnimator.ofFloat(tvBrand, "alpha", 0f, 1f).apply {
+                duration = 1000
+                interpolator = AccelerateDecelerateInterpolator()
+                start()
+            }
+        }, 1000)
+
+        // 跳过按钮初始显示
         tvSkip.visibility = View.VISIBLE
-        tvSkip.text = ""  // 初始为空，待倒计时开始会更新
+        tvSkip.text = ""
+        tvSkip.setOnClickListener(null)
     }
 
     private fun startCountdown(textView: TextView) {
@@ -58,26 +73,52 @@ class SplashActivity : AppCompatActivity() {
             override fun onTick(millisUntilFinished: Long) {
                 val seconds = millisUntilFinished / 1000
                 val totalSeconds = videoDurationMs / 1000
-                val showSkipAfter = totalSeconds - 5  // 最后5秒显示“跳过”
+                val showSkipAfter = totalSeconds - 5
 
                 if (seconds > showSkipAfter) {
-                    // 前部分显示倒计时数字（不包含最后5秒），且不可点击
                     textView.text = seconds.toString()
                     textView.setOnClickListener(null)
+                    // 数字变化时轻微缩放动画
+                    pulseAnimation(textView)
                 } else {
-                    // 最后5秒显示“跳过”，可点击
-                    textView.text = "跳过"
-                    textView.setOnClickListener {
-                        jumpToMain()
+                    // 第一次变成“跳过”时，加一个弹性动画
+                    if (textView.text != "跳过") {
+                        textView.text = "跳过"
+                        textView.setOnClickListener {
+                            jumpToMain()
+                        }
+                        skipAppearAnimation(textView)
                     }
                 }
             }
 
             override fun onFinish() {
-                // 倒计时结束（理论上视频也会同时结束），自动跳转
                 jumpToMain()
             }
         }.start()
+    }
+
+    private fun pulseAnimation(view: View) {
+        val anim = ObjectAnimator.ofFloat(view, "scaleX", 1f, 1.05f, 1f)
+        anim.duration = 200
+        anim.interpolator = AccelerateDecelerateInterpolator()
+        anim.start()
+        ObjectAnimator.ofFloat(view, "scaleY", 1f, 1.05f, 1f).apply {
+            duration = 200
+            interpolator = AccelerateDecelerateInterpolator()
+            start()
+        }
+    }
+
+    private fun skipAppearAnimation(view: View) {
+        view.scaleX = 0.5f
+        view.scaleY = 0.5f
+        view.animate()
+            .scaleX(1f)
+            .scaleY(1f)
+            .setDuration(400)
+            .setInterpolator(OvershootInterpolator(1.5f))
+            .start()
     }
 
     private fun jumpToMain() {
