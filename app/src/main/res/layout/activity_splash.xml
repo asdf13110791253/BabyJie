@@ -9,4 +9,26 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <!-- 漂亮倒计时跳过按钮 -->
+    <TextView
+        android:id="@+id/tvSkipCountdown"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="56dp"
+        android:layout_marginEnd="20dp"
+        android:background="@drawable/bg_skip_button"
+        android:gravity="center"
+        android:minWidth="72dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:text="10 跳过"
+        android:textColor="#FFFFFF"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:letterSpacing="0.03"
+        android:fontFamily="sans-serif-medium" />
+
 </FrameLayout>
