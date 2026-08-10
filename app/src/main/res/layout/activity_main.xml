@@ -29,7 +29,6 @@
             android:textStyle="bold"
             android:fontFamily="sans-serif-medium" />
 
-        <!-- 设置图标（可替换为你的图标） -->
         <ImageView
             android:layout_width="24dp"
             android:layout_height="24dp"
@@ -58,6 +57,7 @@
 
             <!-- AI 功能卡片 -->
             <androidx.cardview.widget.CardView
+                android:id="@+id/cardAI"
                 android:layout_width="0dp"
                 android:layout_height="120dp"
                 android:layout_weight="1"
@@ -91,6 +91,7 @@
 
             <!-- 台球参数卡片 -->
             <androidx.cardview.widget.CardView
+                android:id="@+id/cardParams"
                 android:layout_width="0dp"
                 android:layout_height="120dp"
                 android:layout_weight="1"
@@ -130,6 +131,7 @@
             android:gravity="center">
 
             <androidx.cardview.widget.CardView
+                android:id="@+id/cardCloth"
                 android:layout_width="match_parent"
                 android:layout_height="120dp"
                 android:layout_margin="8dp"
@@ -162,7 +164,7 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- 底部导航栏（简约风格） -->
+    <!-- 底部导航栏 -->
     <LinearLayout
         android:id="@+id/bottomBar"
         android:layout_width="match_parent"
