@@ -19,6 +19,7 @@ class ExoPlayerVideoView @JvmOverloads constructor(
     private var player: ExoPlayer? = null
     private val playerView: PlayerView = PlayerView(context)
     private var onCompletionListener: (() -> Unit)? = null
+    private var onPreparedListener: ((durationMs: Long) -> Unit)? = null
 
     init {
         playerView.useController = false
@@ -35,6 +36,12 @@ class ExoPlayerVideoView @JvmOverloads constructor(
             exoPlayer.playWhenReady = false
             exoPlayer.addListener(object : Player.Listener {
                 override fun onPlaybackStateChanged(playbackState: Int) {
+                    if (playbackState == Player.STATE_READY) {
+                        val duration = exoPlayer.duration
+                        if (duration > 0) {
+                            onPreparedListener?.invoke(duration)
+                        }
+                    }
                     if (playbackState == Player.STATE_ENDED) {
                         onCompletionListener?.invoke()
                     }
@@ -48,6 +55,10 @@ class ExoPlayerVideoView @JvmOverloads constructor(
         onCompletionListener = listener
     }
 
+    fun setOnPreparedListener(listener: (durationMs: Long) -> Unit) {
+        onPreparedListener = listener
+    }
+
     fun start() {
         player?.playWhenReady = true
     }
@@ -58,6 +69,14 @@ class ExoPlayerVideoView @JvmOverloads constructor(
 
     fun setResizeModeZoom() {
         playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+    }
+
+    fun setResizeModeFill() {
+        playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL
+    }
+
+    fun getDuration(): Long {
+        return player?.duration ?: 0
     }
 
     override fun onDetachedFromWindow() {
