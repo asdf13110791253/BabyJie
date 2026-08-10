@@ -4,12 +4,45 @@
     android:layout_height="match_parent"
     android:background="#FFB6C1">
 
+    <!-- 视频层 -->
     <com.babyjie.ExoPlayerVideoView
         android:id="@+id/exoPlayerVideoView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- 漂亮倒计时跳过按钮 -->
+    <!-- 顶部渐变遮罩（黑色到透明，高度120dp） -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:layout_gravity="top"
+        android:background="@drawable/gradient_top" />
+
+    <!-- 底部渐变遮罩（透明到黑色，高度120dp） -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:layout_gravity="bottom"
+        android:background="@drawable/gradient_bottom" />
+
+    <!-- 中央品牌文字/Logo -->
+    <TextView
+        android:id="@+id/tvBrand"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="BabyJie"
+        android:textColor="#FFFFFF"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:letterSpacing="0.1"
+        android:fontFamily="sans-serif-medium"
+        android:alpha="0"
+        android:shadowColor="#99000000"
+        android:shadowDx="0"
+        android:shadowDy="2"
+        android:shadowRadius="8" />
+
+    <!-- 跳过按钮（保持原有位置） -->
     <TextView
         android:id="@+id/tvSkipCountdown"
         android:layout_width="wrap_content"
@@ -24,11 +57,12 @@
         android:paddingEnd="16dp"
         android:paddingTop="10dp"
         android:paddingBottom="10dp"
-        android:text="10 跳过"
+        android:text="10"
         android:textColor="#FFFFFF"
         android:textSize="13sp"
         android:textStyle="bold"
         android:letterSpacing="0.03"
-        android:fontFamily="sans-serif-medium" />
+        android:fontFamily="sans-serif-medium"
+        android:visibility="visible" />
 
 </FrameLayout>
