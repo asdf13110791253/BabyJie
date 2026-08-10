@@ -11,7 +11,7 @@ import android.os.CountDownTimer
 import android.os.Handler
 import android.os.Looper
 import android.view.View
-import android.view.animation.AccelerateDecelerateInterpolator
+import android.view.animation.DecelerateInterpolator
 import android.view.animation.OvershootInterpolator
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -43,7 +43,6 @@ class SplashActivity : AppCompatActivity() {
         val videoView = findViewById<ExoPlayerVideoView>(R.id.exoPlayerVideoView)
         val tvSkip = findViewById<TextView>(R.id.tvSkipCountdown)
 
-        // 收集字母视图
         letterViews.add(findViewById(R.id.tvLetter1))
         letterViews.add(findViewById(R.id.tvLetter2))
         letterViews.add(findViewById(R.id.tvLetter3))
@@ -59,7 +58,7 @@ class SplashActivity : AppCompatActivity() {
         videoView.setOnPreparedListener { durationMs ->
             videoDurationMs = durationMs
             startCountdown(tvSkip)
-            startTopBrandAnimation()
+            startElegantBrandAnimation()
         }
 
         videoView.setOnCompletionListener {
@@ -73,44 +72,42 @@ class SplashActivity : AppCompatActivity() {
         tvSkip.setOnClickListener(null)
     }
 
-    private fun startTopBrandAnimation() {
+    private fun startElegantBrandAnimation() {
         if (brandAnimSet != null) return
 
-        val appearSet = AnimatorSet()
         val appearAnimators = mutableListOf<Animator>()
 
-        // 逐个字母弹跳出现 (弹性过冲)
+        // 逐个字母柔和出现（淡入 + 轻微放大，无弹跳）
         for (i in letterViews.indices) {
             val letter = letterViews[i]
             letter.alpha = 0f
-            letter.scaleX = 0.3f
-            letter.scaleY = 0.3f
+            letter.scaleX = 0.8f
+            letter.scaleY = 0.8f
 
             val alphaAnim = ObjectAnimator.ofFloat(letter, "alpha", 0f, 1f)
-            val scaleXAnim = ObjectAnimator.ofFloat(letter, "scaleX", 0.3f, 1.3f, 1f)
-            val scaleYAnim = ObjectAnimator.ofFloat(letter, "scaleY", 0.3f, 1.3f, 1f)
+            val scaleXAnim = ObjectAnimator.ofFloat(letter, "scaleX", 0.8f, 1f)
+            val scaleYAnim = ObjectAnimator.ofFloat(letter, "scaleY", 0.8f, 1f)
 
-            scaleXAnim.interpolator = OvershootInterpolator(2.5f)
-            scaleYAnim.interpolator = OvershootInterpolator(2.5f)
+            alphaAnim.interpolator = DecelerateInterpolator()
+            scaleXAnim.interpolator = DecelerateInterpolator()
+            scaleYAnim.interpolator = DecelerateInterpolator()
 
             val letterSet = AnimatorSet()
             letterSet.playTogether(alphaAnim, scaleXAnim, scaleYAnim)
-            letterSet.startDelay = (i * 150L) // 每个字母间隔150ms，更流畅
+            letterSet.duration = 500
+            letterSet.startDelay = (i * 180L)
             appearAnimators.add(letterSet)
         }
 
-        appearSet.playSequentially(appearAnimators) // 实际上这里是顺序的，但用playSequentially控制
-        // 注意：playSequentially 会使每个动画在前一个结束后执行，我们需要他们依次启动，但可以重叠一点。
-        // 更好的方式：使用 startDelay 并同时播放，但把延迟累加到每个动画。
-        // 上面已经设置了 startDelay，所以应该 playTogether 才能按延迟依次启动
+        val appearSet = AnimatorSet()
         appearSet.playTogether(appearAnimators)
 
-        // 所有字母出现后，开始呼吸发光动画
-        val breathAnimator = ValueAnimator.ofFloat(8f, 22f, 8f).apply {
-            duration = 2000
+        // 柔和呼吸发光（阴影半径在 6-16 之间缓慢变化）
+        val breathAnimator = ValueAnimator.ofFloat(6f, 16f, 6f).apply {
+            duration = 2800
             repeatCount = ValueAnimator.INFINITE
             repeatMode = ValueAnimator.REVERSE
-            interpolator = AccelerateDecelerateInterpolator()
+            interpolator = DecelerateInterpolator()
             addUpdateListener { animator ->
                 val radius = animator.animatedValue as Float
                 for (letter in letterViews) {
@@ -119,29 +116,31 @@ class SplashActivity : AppCompatActivity() {
             }
         }
 
-        // 出场动画：逆序缩小+淡出
-        val disappearSet = AnimatorSet()
+        // 逆序柔和消失（淡出 + 轻微缩小）
         val disappearAnimators = mutableListOf<Animator>()
         for (i in letterViews.size - 1 downTo 0) {
             val letter = letterViews[i]
             val alphaAnim = ObjectAnimator.ofFloat(letter, "alpha", 1f, 0f)
-            val scaleXAnim = ObjectAnimator.ofFloat(letter, "scaleX", 1f, 0.3f)
-            val scaleYAnim = ObjectAnimator.ofFloat(letter, "scaleY", 1f, 0.3f)
+            val scaleXAnim = ObjectAnimator.ofFloat(letter, "scaleX", 1f, 0.8f)
+            val scaleYAnim = ObjectAnimator.ofFloat(letter, "scaleY", 1f, 0.8f)
 
             val letterDisappear = AnimatorSet()
             letterDisappear.playTogether(alphaAnim, scaleXAnim, scaleYAnim)
-            letterDisappear.startDelay = ((letterViews.size - 1 - i) * 150L)
+            letterDisappear.duration = 400
+            letterDisappear.startDelay = ((letterViews.size - 1 - i) * 160L)
             disappearAnimators.add(letterDisappear)
         }
+
+        val disappearSet = AnimatorSet()
         disappearSet.playTogether(disappearAnimators)
 
-        // 总控顺序：出现 -> 开始呼吸 (延时 3.5 秒后开始消失，可调整)
+        // 总控：出现 -> 呼吸约3.5秒 -> 消失
         brandAnimSet = AnimatorSet()
         brandAnimSet!!.playSequentially(
             appearSet,
             AnimatorSet().apply {
-                play(breathAnimator).after(200) // 出现后延迟200ms开始呼吸
-                duration = 3500 // 呼吸持续3.5秒
+                play(breathAnimator).after(300)
+                duration = 3500
             },
             disappearSet
         )
@@ -166,6 +165,7 @@ class SplashActivity : AppCompatActivity() {
                         textView.setOnClickListener {
                             jumpToMain()
                         }
+                        // 跳过按钮出现时仍保留一点弹性，因为它是可交互的，吸引点击
                         skipAppearAnimation(textView)
                     }
                 }
@@ -178,24 +178,24 @@ class SplashActivity : AppCompatActivity() {
     }
 
     private fun pulseAnimation(view: View) {
-        val animX = ObjectAnimator.ofFloat(view, "scaleX", 1f, 1.05f, 1f)
-        animX.duration = 200
-        animX.interpolator = AccelerateDecelerateInterpolator()
+        val animX = ObjectAnimator.ofFloat(view, "scaleX", 1f, 1.03f, 1f)
+        animX.duration = 300
+        animX.interpolator = DecelerateInterpolator()
         animX.start()
-        val animY = ObjectAnimator.ofFloat(view, "scaleY", 1f, 1.05f, 1f)
-        animY.duration = 200
-        animY.interpolator = AccelerateDecelerateInterpolator()
+        val animY = ObjectAnimator.ofFloat(view, "scaleY", 1f, 1.03f, 1f)
+        animY.duration = 300
+        animY.interpolator = DecelerateInterpolator()
         animY.start()
     }
 
     private fun skipAppearAnimation(view: View) {
-        view.scaleX = 0.5f
-        view.scaleY = 0.5f
+        view.scaleX = 0.6f
+        view.scaleY = 0.6f
         view.animate()
             .scaleX(1f)
             .scaleY(1f)
-            .setDuration(400)
-            .setInterpolator(OvershootInterpolator(1.5f))
+            .setDuration(350)
+            .setInterpolator(OvershootInterpolator(0.8f))  // 轻微弹性，不刺眼
             .start()
     }
 
