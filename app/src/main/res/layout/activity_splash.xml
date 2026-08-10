@@ -24,7 +24,7 @@
         android:layout_gravity="bottom"
         android:background="@drawable/gradient_bottom" />
 
-    <!-- 彩色逐字品牌动画区域（保留之前的效果，如果不想要可以删除） -->
+    <!-- 彩色逐字品牌动画区域（保留之前的效果） -->
     <LinearLayout
         android:id="@+id/llBrand"
         android:layout_width="wrap_content"
