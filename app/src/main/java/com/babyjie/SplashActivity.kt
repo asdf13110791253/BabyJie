@@ -65,8 +65,7 @@ class SplashActivity : AppCompatActivity() {
             startPremiumLetterAnimation()
             // 启动底部加载条动画：5秒填满，然后自动消失
             glassLoadingText.startLoading(5000L) {
-                // 所有字母消失后，如果还没跳转，可以在这里跳转
-                // 但注意不要重复跳转，这里留空，由视频完成或跳过按钮触发跳转
+                // 所有字母消失后的回调，这里留空，由视频完成或跳过按钮触发跳转
             }
         }
 
