@@ -1,13 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- 网络权限（原有） -->
     <uses-permission android:name="android.permission.INTERNET" />
-    <!-- 悬浮窗权限（必须） -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-    <!-- 前台服务权限（Android 9+ 需要） -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <!-- 录屏权限无需额外声明，由 MediaProjection 动态申请 -->
 
     <application
         android:allowBackup="true"
@@ -25,19 +21,19 @@
             </intent-filter>
         </activity>
 
-        <!-- 主界面 -->
+        <!-- 校验等待页 -->
+        <activity
+            android:name=".CheckActivity"
+            android:exported="false" />
+
+        <!-- 横竖屏选择页（代替原来主界面） -->
+        <activity
+            android:name=".OrientationActivity"
+            android:exported="false" />
+
+        <!-- 原来的主界面（可以保留，但当前流程不会用到） -->
         <activity
             android:name=".MainActivity"
-            android:exported="false" />
-
-        <!-- 校验等待页（注意：若实际类在 com.babyjie.ui 包下，则保持 .ui.CheckActivity） -->
-        <activity
-            android:name=".ui.CheckActivity"
-            android:exported="false" />
-
-        <!-- 横竖屏选择页 -->
-        <activity
-            android:name=".ui.OrientationActivity"
             android:exported="false" />
 
         <!-- 悬浮窗服务 -->
@@ -45,7 +41,7 @@
             android:name=".FloatWindowService"
             android:exported="false" />
 
-        <!-- 录屏画面捕捉服务（Android 10+ 需要 foregroundServiceType） -->
+        <!-- 录屏服务 -->
         <service
             android:name=".ScreenCaptureService"
             android:foregroundServiceType="mediaProjection"
