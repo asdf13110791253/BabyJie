@@ -1,9 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- 基础主题：全屏沉浸式，无标题栏 -->
     <style name="Theme.BabyJie" parent="Theme.MaterialComponents.Light.NoActionBar">
-        <item name="colorPrimary">@color/pink_primary</item>
-        <item name="colorPrimaryDark">@color/pink_dark</item>
-        <item name="colorAccent">@color/pink_dark</item>
-        <item name="android:windowBackground">@color/pink_primary</item>
+        <!-- 主色：高级粉紫色 -->
+        <item name="colorPrimary">#E040FB</item>
+        <item name="colorPrimaryDark">#AA00FF</item>
+        <item name="colorAccent">#FF4081</item>
+
+        <!-- 背景：默认透明，由各界面自行设置渐变 -->
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+
+        <!-- 全局字体（如果手机支持 Google Sans，可设置） -->
+        <item name="android:fontFamily">sans-serif-medium</item>
+
+        <!-- 圆角：Material 卡片默认圆角 24dp -->
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.BabyJie.Medium</item>
+    </style>
+
+    <!-- 自定义圆角样式 -->
+    <style name="ShapeAppearance.BabyJie.Medium" parent="ShapeAppearance.MaterialComponents.MediumComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">24dp</item>
     </style>
 </resources>
