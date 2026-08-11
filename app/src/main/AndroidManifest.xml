@@ -11,37 +11,17 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.BabyJie">
 
-        <!-- 启动页 -->
-        <activity
-            android:name=".SplashActivity"
-            android:exported="true">
+        <activity android:name=".SplashActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <!-- 校验等待页 -->
-        <activity
-            android:name=".CheckActivity"
-            android:exported="false" />
+        <activity android:name=".OrientationActivity" android:exported="false" />
+        <activity android:name=".MainActivity" android:exported="false" />
 
-        <!-- 横竖屏选择页（代替原来主界面） -->
-        <activity
-            android:name=".OrientationActivity"
-            android:exported="false" />
-
-        <!-- 原来的主界面（可以保留，但当前流程不会用到） -->
-        <activity
-            android:name=".MainActivity"
-            android:exported="false" />
-
-        <!-- 悬浮窗服务 -->
-        <service
-            android:name=".FloatWindowService"
-            android:exported="false" />
-
-        <!-- 录屏服务 -->
+        <service android:name=".FloatWindowService" android:exported="false" />
         <service
             android:name=".ScreenCaptureService"
             android:foregroundServiceType="mediaProjection"
