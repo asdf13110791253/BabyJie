@@ -19,6 +19,7 @@ class ExoPlayerVideoView @JvmOverloads constructor(
     private var player: ExoPlayer? = null
     private val playerView: PlayerView = PlayerView(context)
     private var onCompletionListener: (() -> Unit)? = null
+    private var onPreparedListener: ((Long) -> Unit)? = null  // 增加准备完成回调
 
     init {
         playerView.useController = false
@@ -35,8 +36,16 @@ class ExoPlayerVideoView @JvmOverloads constructor(
             exoPlayer.playWhenReady = false
             exoPlayer.addListener(object : Player.Listener {
                 override fun onPlaybackStateChanged(playbackState: Int) {
-                    if (playbackState == Player.STATE_ENDED) {
-                        onCompletionListener?.invoke()
+                    when (playbackState) {
+                        Player.STATE_READY -> {
+                            val duration = exoPlayer.duration
+                            if (duration > 0) {
+                                onPreparedListener?.invoke(duration)
+                            }
+                        }
+                        Player.STATE_ENDED -> {
+                            onCompletionListener?.invoke()
+                        }
                     }
                 }
             })
@@ -46,6 +55,10 @@ class ExoPlayerVideoView @JvmOverloads constructor(
 
     fun setOnCompletionListener(listener: () -> Unit) {
         onCompletionListener = listener
+    }
+
+    fun setOnPreparedListener(listener: (Long) -> Unit) {
+        onPreparedListener = listener
     }
 
     fun start() {
