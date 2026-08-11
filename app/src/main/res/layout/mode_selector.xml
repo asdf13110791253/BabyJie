@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="36dp"
+    android:orientation="horizontal"
+    android:gravity="center"
+    android:background="@drawable/mode_btn_bg">
+
+    <TextView android:id="@+id/btnStraight" style="@style/ModeBtn" android:text="直球" />
+    <TextView android:id="@+id/btnBank" style="@style/ModeBtn" android:text="翻袋" />
+    <TextView android:id="@+id/btnMultiRail" style="@style/ModeBtn" android:text="多酷" />
+    <TextView android:id="@+id/btnRailCut" style="@style/ModeBtn" android:text="护边球" />
+    <TextView android:id="@+id/btnPass" style="@style/ModeBtn" android:text="传球" />
+</LinearLayout>
