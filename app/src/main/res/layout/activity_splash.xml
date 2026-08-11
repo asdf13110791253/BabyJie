@@ -24,7 +24,7 @@
         android:layout_gravity="bottom"
         android:background="@drawable/gradient_bottom" />
 
-    <!-- 彩色字母品牌动画区域 -->
+    <!-- 品牌字母动画区域（统一粉色系渐变） -->
     <LinearLayout
         android:id="@+id/llBrand"
         android:layout_width="wrap_content"
@@ -38,108 +38,108 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="B"
-            android:textColor="#FF3366"
-            android:textSize="38sp"
+            android:textColor="#FF69B4"
+            android:textSize="42sp"
             android:textStyle="bold"
             android:fontFamily="sans-serif-black"
             android:alpha="0"
-            android:shadowColor="#80FF3366"
+            android:shadowColor="#80FF69B4"
             android:shadowDx="0"
             android:shadowDy="0"
-            android:shadowRadius="16" />
+            android:shadowRadius="20" />
 
         <TextView
             android:id="@+id/tvLetter2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="a"
-            android:textColor="#FF6EC7"
-            android:textSize="38sp"
+            android:textColor="#FF85C1"
+            android:textSize="42sp"
             android:textStyle="bold"
             android:fontFamily="sans-serif-black"
             android:alpha="0"
-            android:shadowColor="#80FF6EC7"
+            android:shadowColor="#80FF85C1"
             android:shadowDx="0"
             android:shadowDy="0"
-            android:shadowRadius="16" />
+            android:shadowRadius="20" />
 
         <TextView
             android:id="@+id/tvLetter3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="b"
-            android:textColor="#9B59B6"
-            android:textSize="38sp"
+            android:textColor="#FFA0D0"
+            android:textSize="42sp"
             android:textStyle="bold"
             android:fontFamily="sans-serif-black"
             android:alpha="0"
-            android:shadowColor="#809B59B6"
+            android:shadowColor="#80FFA0D0"
             android:shadowDx="0"
             android:shadowDy="0"
-            android:shadowRadius="16" />
+            android:shadowRadius="20" />
 
         <TextView
             android:id="@+id/tvLetter4"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="y"
-            android:textColor="#3498DB"
-            android:textSize="38sp"
+            android:textColor="#FF69B4"
+            android:textSize="42sp"
             android:textStyle="bold"
             android:fontFamily="sans-serif-black"
             android:alpha="0"
-            android:shadowColor="#803498DB"
+            android:shadowColor="#80FF69B4"
             android:shadowDx="0"
             android:shadowDy="0"
-            android:shadowRadius="16" />
+            android:shadowRadius="20" />
 
         <TextView
             android:id="@+id/tvLetter5"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="J"
-            android:textColor="#1ABC9C"
-            android:textSize="38sp"
+            android:textColor="#FF85C1"
+            android:textSize="42sp"
             android:textStyle="bold"
             android:fontFamily="sans-serif-black"
             android:alpha="0"
-            android:shadowColor="#801ABC9C"
+            android:shadowColor="#80FF85C1"
             android:shadowDx="0"
             android:shadowDy="0"
-            android:shadowRadius="16" />
+            android:shadowRadius="20" />
 
         <TextView
             android:id="@+id/tvLetter6"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="i"
-            android:textColor="#F1C40F"
-            android:textSize="38sp"
+            android:textColor="#FFA0D0"
+            android:textSize="42sp"
             android:textStyle="bold"
             android:fontFamily="sans-serif-black"
             android:alpha="0"
-            android:shadowColor="#80F1C40F"
+            android:shadowColor="#80FFA0D0"
             android:shadowDx="0"
             android:shadowDy="0"
-            android:shadowRadius="16" />
+            android:shadowRadius="20" />
 
         <TextView
             android:id="@+id/tvLetter7"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="e"
-            android:textColor="#E67E22"
-            android:textSize="38sp"
+            android:textColor="#FF69B4"
+            android:textSize="42sp"
             android:textStyle="bold"
             android:fontFamily="sans-serif-black"
             android:alpha="0"
-            android:shadowColor="#80E67E22"
+            android:shadowColor="#80FF69B4"
             android:shadowDx="0"
             android:shadowDy="0"
-            android:shadowRadius="16" />
+            android:shadowRadius="20" />
     </LinearLayout>
 
-    <!-- 跳过按钮 -->
+    <!-- 跳过按钮（粉色玻璃质感） -->
     <TextView
         android:id="@+id/tvSkipCountdown"
         android:layout_width="wrap_content"
@@ -171,7 +171,7 @@
         android:text="Babyje"
         android:textSize="170sp" />
 
-    <!-- ================== 免责声明层（美化版 + 二维码） ================== -->
+    <!-- ================== 免责声明层（统一粉色主题） ================== -->
     <FrameLayout
         android:id="@+id/disclaimerOverlay"
         android:layout_width="match_parent"
@@ -181,13 +181,11 @@
         android:clickable="true"
         android:focusable="true">
 
-        <!-- 模糊背景模拟 -->
         <View
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@drawable/disclaimer_bg_gradient" />
 
-        <!-- 内容 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -227,14 +225,14 @@
                 android:textSize="13sp"
                 android:layout_marginBottom="20dp" />
 
-            <!-- 渐变分割线 -->
+            <!-- 粉色渐变分割线 -->
             <View
                 android:layout_width="60dp"
                 android:layout_height="2dp"
                 android:background="@drawable/disclaimer_divider"
                 android:layout_marginBottom="24dp" />
 
-            <!-- 文本卡片 -->
+            <!-- 文本卡片（半透明圆角） -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
@@ -261,40 +259,28 @@
                 </ScrollView>
             </LinearLayout>
 
-            <!-- ========== 扫码添加开发者微信 ========== -->
-            <LinearLayout
+            <!-- 联系开发者按钮（粉色描边半透明按钮） -->
+            <TextView
+                android:id="@+id/btnContactDev"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:gravity="center"
+                android:text="联系开发者微信"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp"
                 android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp">
+                android:background="@drawable/bg_save_button" />
 
-                <ImageView
-                    android:id="@+id/ivWechatQr"
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
-                    android:src="@drawable/qrcode_wechat"
-                    android:scaleType="fitCenter"
-                    android:background="@drawable/disclaimer_text_card_bg"
-                    android:padding="8dp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="扫码添加开发者微信"
-                    android:textColor="#CCFFFFFF"
-                    android:textSize="12sp"
-                    android:layout_marginTop="6dp" />
-            </LinearLayout>
-            <!-- ====================================== -->
-
-            <!-- 滑动解锁控件 -->
+            <!-- 同意进入滑动控件（粉色主题） -->
             <com.babyjie.SlideToUnlockView
                 android:id="@+id/slideToUnlock"
                 android:layout_width="match_parent"
                 android:layout_height="70dp"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="12dp"
                 android:layout_marginStart="8dp"
                 android:layout_marginEnd="8dp" />
         </LinearLayout>
