@@ -149,7 +149,6 @@ class TableClothView @JvmOverloads constructor(
     }
 
     private fun updateStepHint() {
-        val step = steps[stepIndex]
         val hint = when (stepIndex) {
             0 -> "微调: 2px"
             1 -> "微调: 8px"
@@ -172,18 +171,21 @@ class TableClothView @JvmOverloads constructor(
         selectionBox.layoutParams = lp
         updateRegion()
     }
+
     private fun adjustRight(dx: Float) {
         val lp = selectionBox.layoutParams as LayoutParams
         lp.width = (lp.width + dx.toInt()).coerceAtLeast(80)
         selectionBox.layoutParams = lp
         updateRegion()
     }
+
     private fun adjustTop(dy: Float) {
         val lp = selectionBox.layoutParams as LayoutParams
         lp.topMargin = (lp.topMargin + dy.toInt()).coerceAtLeast(0)
         selectionBox.layoutParams = lp
         updateRegion()
     }
+
     private fun adjustBottom(dy: Float) {
         val lp = selectionBox.layoutParams as LayoutParams
         lp.height = (lp.height + dy.toInt()).coerceAtLeast(80)
@@ -191,4 +193,64 @@ class TableClothView @JvmOverloads constructor(
         updateRegion()
     }
 
-    private fun updateReg
+    private fun updateRegion() {
+        val lp = selectionBox.layoutParams as LayoutParams
+        detectionRegion.set(
+            lp.leftMargin.toFloat(),
+            lp.topMargin.toFloat(),
+            (lp.leftMargin + lp.width).toFloat(),
+            (lp.topMargin + lp.height).toFloat()
+        )
+        tvRegionSize.text = "${lp.width} × ${lp.height}"
+    }
+
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        val x = event.x
+        val y = event.y
+        val lp = selectionBox.layoutParams as LayoutParams
+
+        when (event.action) {
+            MotionEvent.ACTION_DOWN -> {
+                lastX = x; lastY = y
+                val leftEdge = selectionBox.x + resizeBorder
+                val rightEdge = selectionBox.x + selectionBox.width - resizeBorder
+                val topEdge = selectionBox.y + resizeBorder
+                val bottomEdge = selectionBox.y + selectionBox.height - resizeBorder
+
+                if (x < leftEdge && y > topEdge && y < bottomEdge) { isResizing = true; resizeEdge = 1 }
+                else if (x > rightEdge && y > topEdge && y < bottomEdge) { isResizing = true; resizeEdge = 2 }
+                else if (y < topEdge && x > leftEdge && x < rightEdge) { isResizing = true; resizeEdge = 3 }
+                else if (y > bottomEdge && x > leftEdge && x < rightEdge) { isResizing = true; resizeEdge = 4 }
+                else { isDragging = true }
+                return true
+            }
+            MotionEvent.ACTION_MOVE -> {
+                if (isDragging) {
+                    val dx = (x - lastX).toInt()
+                    val dy = (y - lastY).toInt()
+                    lp.leftMargin = (lp.leftMargin + dx).coerceAtLeast(0)
+                    lp.topMargin = (lp.topMargin + dy).coerceAtLeast(0)
+                    selectionBox.layoutParams = lp
+                    lastX = x; lastY = y
+                    updateRegion()
+                } else if (isResizing) {
+                    when (resizeEdge) {
+                        1 -> { val dx = (x - lastX).toInt(); lp.leftMargin = (lp.leftMargin + dx).coerceAtLeast(0); lp.width = (lp.width - dx).coerceAtLeast(80) }
+                        2 -> { val dx = (x - lastX).toInt(); lp.width = (lp.width + dx).coerceAtLeast(80) }
+                        3 -> { val dy = (y - lastY).toInt(); lp.topMargin = (lp.topMargin + dy).coerceAtLeast(0); lp.height = (lp.height - dy).coerceAtLeast(80) }
+                        4 -> { val dy = (y - lastY).toInt(); lp.height = (lp.height + dy).coerceAtLeast(80) }
+                    }
+                    selectionBox.layoutParams = lp
+                    lastX = x; lastY = y
+                    updateRegion()
+                }
+                return true
+            }
+            MotionEvent.ACTION_UP -> {
+                isDragging = false; isResizing = false
+                return true
+            }
+        }
+        return super.onTouchEvent(event)
+    }
+}
