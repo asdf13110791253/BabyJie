@@ -118,21 +118,27 @@ class FloatWindowService : Service() {
         }
     }
 
-    // 菜单动画
     private fun toggleMenu() { if (menuExpanded) hideMenu() else showMenu() }
-    private fun showMenu() { /* ... 代码不变 ... */ }
-    private fun hideMenu() { /* ... 代码不变 ... */ }
+    private fun showMenu() {
+        if (menuExpanded) return; menuExpanded = true
+        val sw = displayMetrics.widthPixels; val menuW = (sw * 0.55f).toInt()
+        menuBar.layoutParams.width = menuW
+        val loc = IntArray(2); mainBtn.getLocationOnScreen(loc)
+        val cx = loc[0] + mainBtn.width/2f; val top = loc[1]
+        val mx = (cx - menuW/2f).toInt().coerceIn(0, sw-menuW)
+        val my = (top - menuBar.layoutParams.height - 20).coerceAtLeast(0)
+        menuBar.x = mx.toFloat(); menuBar.y = my.toFloat()
+        menuBar.visibility = View.VISIBLE
+        menuBar.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(200).start()
+    }
+    private fun hideMenu() {
+        if (!menuExpanded) return; menuExpanded = false
+        menuBar.animate().alpha(0f).scaleX(0.8f).scaleY(0.8f).setDuration(150).withEndAction { menuBar.visibility = View.GONE }.start()
+    }
 
-    // ========== 完整实现：桌布调整 ==========
     private fun showCloth() {
-        if (clothVisible) return
-        clothVisible = true
-        clothView = TableClothView(this).apply {
-            onDoneListener = { r ->
-                region = r
-                hideCloth()
-            }
-        }
+        if (clothVisible) return; clothVisible = true
+        clothView = TableClothView(this).apply { onDoneListener = { r -> region = r; hideCloth() } }
         wm.addView(clothView, WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT,
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
@@ -141,23 +147,16 @@ class FloatWindowService : Service() {
             PixelFormat.TRANSLUCENT
         ))
     }
-
     private fun hideCloth() {
-        if (!clothVisible || clothView == null) return
-        clothVisible = false
-        wm.removeView(clothView)
-        clothView = null
+        if (!clothVisible || clothView == null) return; clothVisible = false
+        wm.removeView(clothView); clothView = null
     }
 
-    // ========== 完整实现：台球参数面板 ==========
     private fun showParams() {
-        if (paramsVisible) return
-        paramsVisible = true
+        if (paramsVisible) return; paramsVisible = true
         paramsPanel = ParamsPanelView(this).apply {
             onDoneListener = { p, a, s ->
-                power = p
-                angle = a
-                sensitivity = s
+                power = p; angle = a; sensitivity = s
                 aimCircle?.circleSizeDp = mapPowerToSize(p)
                 aimCircle?.setDirectionLine(a.toFloat(), mapPowerToLength(p), true)
                 hideParams()
@@ -172,16 +171,93 @@ class FloatWindowService : Service() {
         ).apply { gravity = Gravity.TOP or Gravity.START; x = 80; y = 500 }
         wm.addView(paramsPanel, lp)
     }
-
     private fun hideParams() {
-        if (!paramsVisible || paramsPanel == null) return
-        paramsVisible = false
-        wm.removeView(paramsPanel)
-        paramsPanel = null
+        if (!paramsVisible || paramsPanel == null) return; paramsVisible = false
+        wm.removeView(paramsPanel); paramsPanel = null
     }
 
-    // 模式选择条、瞄准圈等其余方法保持原样...
-    // （需确保 showModeBar, selectMode, showAimAndOverlay, updateOverlay 等方法均已存在，且与之前完整版一致）
+    private fun showModeBar() {
+        if (modeVisible) return; modeVisible = true
+        modeBar = LayoutInflater.from(this).inflate(R.layout.mode_selector, null)
+        modeBar?.findViewById<TextView>(R.id.btnStraight)?.setOnClickListener { selectMode(LineType.STRAIGHT) }
+        modeBar?.findViewById<TextView>(R.id.btnBank)?.setOnClickListener { selectMode(LineType.BANK) }
+        modeBar?.findViewById<TextView>(R.id.btnMultiRail)?.setOnClickListener { selectMode(LineType.MULTI_RAIL) }
+        modeBar?.findViewById<TextView>(R.id.btnRailCut)?.setOnClickListener { selectMode(LineType.CUSHION_SHOT) }
+        modeBar?.findViewById<TextView>(R.id.btnPass)?.setOnClickListener { selectMode(LineType.PASS) }
+        val lp = WindowManager.LayoutParams(
+            WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT,
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+            else WindowManager.LayoutParams.TYPE_PHONE,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+            PixelFormat.TRANSLUCENT
+        ).apply { gravity = Gravity.TOP or Gravity.START; x = 200; y = 200 }
+        wm.addView(modeBar, lp)
+    }
+    private fun hideModeBar() { if (!modeVisible || modeBar == null) return; modeVisible = false; wm.removeView(modeBar); modeBar = null }
+
+    private fun selectMode(mode: LineType) {
+        currentMode = mode
+        hideModeBar()
+        showAimAndOverlay()
+        Toast.makeText(this, "模式: ${mode.name}", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun showAimAndOverlay() {
+        if (!aimVisible) {
+            aimCircle = AimCircleView(this).apply {
+                circleSizeDp = mapPowerToSize(power)
+                setDirectionLine(angle.toFloat(), mapPowerToLength(power), true)
+            }
+            wm.addView(aimCircle, WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT,
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+                else WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+                PixelFormat.TRANSLUCENT
+            ).apply { gravity = Gravity.TOP or Gravity.START; x = 300; y = 300 })
+            aimVisible = true
+        }
+        if (!overlayVisible) {
+            lineOverlay = AimLineOverlay(this)
+            wm.addView(lineOverlay, WindowManager.LayoutParams(
+                WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT,
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+                else WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+                PixelFormat.TRANSLUCENT
+            ))
+            overlayVisible = true
+        }
+    }
+
+    private fun updateOverlay() {
+        if (!overlayVisible || lineOverlay == null) return
+        lineOverlay?.balls = allBalls
+        lineOverlay?.currentMode = currentMode
+
+        val w = displayMetrics.widthPixels; val h = displayMetrics.heightPixels
+        val cue = cueBallPos?.let { PointF(it.x, it.y) } ?: return
+
+        val bestTarget = pathCalc.findBestTarget(cue, allBalls, w, h)
+        if (bestTarget != null) {
+            val tp = bestTarget.position
+            lineOverlay?.highlightedBall = tp
+            when (currentMode) {
+                LineType.STRAIGHT -> lineOverlay?.aimLine = pathCalc.findStraightShot(cue, tp, w, h)
+                LineType.BANK -> lineOverlay?.aimLine = pathCalc.findBankShot(tp, w, h)
+                LineType.MULTI_RAIL -> lineOverlay?.aimLine = pathCalc.findMultiRailShot(cue, tp, w, h)
+                LineType.CUSHION_SHOT -> lineOverlay?.aimLine = pathCalc.findCushionShot(cue, tp, w, h)
+                LineType.PASS -> lineOverlay?.aimLine = pathCalc.findPassShot(cue, tp, allBalls, w, h)
+            }
+        } else {
+            lineOverlay?.highlightedBall = null
+        }
+        lineOverlay?.invalidate()
+    }
+
+    private fun dist(x1: Float, y1: Float, x2: Float, y2: Float) = sqrt((x1-x2).pow(2) + (y1-y2).pow(2))
+    private fun mapPowerToSize(p: Int) = 40f + (p/100f)*80f
+    private fun mapPowerToLength(p: Int) = 20f + (p/100f)*60f
 
     override fun onDestroy() {
         if (clothVisible && clothView != null) wm.removeView(clothView)
@@ -193,8 +269,4 @@ class FloatWindowService : Service() {
         ScreenCaptureService.detectionCallback = null
         super.onDestroy()
     }
-
-    // 其他辅助函数（dist, mapPowerToSize 等）保持不变
-    private fun mapPowerToSize(p: Int) = 40f + (p/100f)*80f
-    private fun mapPowerToLength(p: Int) = 20f + (p/100f)*60f
 }
