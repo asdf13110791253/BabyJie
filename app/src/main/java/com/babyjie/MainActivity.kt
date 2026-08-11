@@ -8,4 +8,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
     }
+
+    // 不处理返回键，避免退出
+    override fun onBackPressed() { }
 }
