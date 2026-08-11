@@ -20,6 +20,7 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import kotlin.math.pow
 import kotlin.math.sqrt
 
 class FloatWindowService : Service() {
@@ -34,37 +35,29 @@ class FloatWindowService : Service() {
     private var initTX = 0f; private var initTY = 0f
     private var dragging = false
 
-    // 桌布调整
     private var clothView: TableClothView? = null
     private var clothVisible = false
 
-    // 参数面板
     private var paramsPanel: ParamsPanelView? = null
     private var paramsVisible = false
 
-    // 瞄准圈
     private var aimCircle: AimCircleView? = null
     private var aimVisible = false
 
-    // 模式选择条
     private var modeBar: View? = null
     private var modeVisible = false
     private var currentMode = LineType.STRAIGHT
 
-    // 路线覆盖层
     private var lineOverlay: AimLineOverlay? = null
     private var overlayVisible = false
 
-    // 路径计算器
     private val pathCalc = PathCalculator()
 
-    // 存储数据
     private var region: RectF? = null
     private var tableDetected = false
     private var cueBallPos: BallPosition? = null
     private var allBalls = mutableListOf<BallPosition>()
 
-    // 参数
     private var power = 50
     private var angle = 45
     private var sensitivity = 5
@@ -96,7 +89,8 @@ class FloatWindowService : Service() {
             override fun onTableDetected(table: Boolean, ball: BallPosition?) {
                 tableDetected = table
                 if (ball != null) cueBallPos = ball
-                // 检测所有球（这里需要从服务获取更多球，暂用单球模拟）
+                // 实际项目中应获取 allBalls，这里暂用单球模拟
+                allBalls = if (ball != null) mutableListOf(ball) else mutableListOf()
                 handler.post { updateOverlay() }
             }
         }
@@ -134,24 +128,20 @@ class FloatWindowService : Service() {
             }
         }
 
-        // 菜单项1 → AI模式选择
         floatRoot.findViewById<TextView>(R.id.menuItem1).setOnClickListener {
             if (modeVisible) hideModeBar() else showModeBar()
             hideMenu()
         }
-        // 菜单项2 → 参数
         floatRoot.findViewById<TextView>(R.id.menuItem2).setOnClickListener {
             if (paramsVisible) hideParams() else showParams()
             hideMenu()
         }
-        // 菜单项3 → 桌布
         floatRoot.findViewById<TextView>(R.id.menuItem3).setOnClickListener {
             if (clothVisible) hideCloth() else showCloth()
             hideMenu()
         }
     }
 
-    // ==================== 菜单动画 ====================
     private fun toggleMenu() { if (menuExpanded) hideMenu() else showMenu() }
     private fun showMenu() {
         if (menuExpanded) return; menuExpanded = true
@@ -171,7 +161,6 @@ class FloatWindowService : Service() {
         menuBar.animate().alpha(0f).scaleX(0.8f).scaleY(0.8f).setDuration(150).withEndAction { menuBar.visibility = View.GONE }.start()
     }
 
-    // ==================== 桌布调整 ====================
     private fun showCloth() {
         if (clothVisible) return; clothVisible = true
         clothView = TableClothView(this).apply { onDoneListener = { r -> region = r; hideCloth() } }
@@ -187,7 +176,6 @@ class FloatWindowService : Service() {
         wm.removeView(clothView); clothView = null
     }
 
-    // ==================== 参数面板 ====================
     private fun showParams() {
         if (paramsVisible) return; paramsVisible = true
         paramsPanel = ParamsPanelView(this).apply {
@@ -211,7 +199,6 @@ class FloatWindowService : Service() {
         wm.removeView(paramsPanel); paramsPanel = null
     }
 
-    // ==================== 模式选择条 ====================
     private fun showModeBar() {
         if (modeVisible) return; modeVisible = true
         modeBar = LayoutInflater.from(this).inflate(R.layout.mode_selector, null)
@@ -240,7 +227,6 @@ class FloatWindowService : Service() {
         Toast.makeText(this, "模式: ${mode.name}", Toast.LENGTH_SHORT).show()
     }
 
-    // ==================== 瞄准圈 + 路线覆盖层 ====================
     private fun showAimAndOverlay() {
         if (!aimVisible) {
             aimCircle = AimCircleView(this).apply {
@@ -290,7 +276,6 @@ class FloatWindowService : Service() {
 
     private fun dist(x1: Float, y1: Float, x2: Float, y2: Float) = sqrt((x1-x2).pow(2) + (y1-y2).pow(2))
 
-    // 辅助映射
     private fun mapPowerToSize(p: Int) = 40f + (p/100f)*80f
     private fun mapPowerToLength(p: Int) = 20f + (p/100f)*60f
 
