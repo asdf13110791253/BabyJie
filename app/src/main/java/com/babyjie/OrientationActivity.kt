@@ -34,12 +34,14 @@ class OrientationActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_MEDIA_PROJECTION && resultCode == Activity.RESULT_OK && data != null) {
-            // 启动录屏服务
+            // 1. 启动录屏服务
             val captureIntent = ScreenCaptureService.newIntent(this, resultCode, data, selectedOrientation)
             startService(captureIntent)
-            // 启动悬浮窗服务
+
+            // 2. 启动悬浮窗服务
             startService(Intent(this, FloatWindowService::class.java))
-            // 关闭当前页，悬浮窗将出现在屏幕顶部
+
+            // 3. 关闭当前页，悬浮窗将保留在屏幕上
             finish()
         }
     }
