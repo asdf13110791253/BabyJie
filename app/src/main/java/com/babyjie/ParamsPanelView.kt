@@ -2,7 +2,6 @@ package com.babyjie
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -39,7 +38,6 @@ class ParamsPanelView @JvmOverloads constructor(
         tvAngleValue = findViewById(R.id.tvAngleValue)
         tvSensitivityValue = findViewById(R.id.tvSensitivityValue)
 
-        // 滑块值监听
         sbPower.setOnSeekBarChangeListener(createListener(tvPowerValue))
         sbAngle.setOnSeekBarChangeListener(createListener(tvAngleValue))
         sbSensitivity.setOnSeekBarChangeListener(createListener(tvSensitivityValue))
@@ -48,30 +46,20 @@ class ParamsPanelView @JvmOverloads constructor(
             onDoneListener?.invoke(sbPower.progress, sbAngle.progress, sbSensitivity.progress)
         }
 
-        // 让标题栏可拖动
+        // 标题栏可拖动
         findViewById<TextView>(R.id.tvPanelTitle).setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
-                    lastX = event.rawX
-                    lastY = event.rawY
-                    isDragging = true
-                    true
+                    lastX = event.rawX; lastY = event.rawY; isDragging = true; true
                 }
                 MotionEvent.ACTION_MOVE -> {
                     if (isDragging) {
-                        val dx = event.rawX - lastX
-                        val dy = event.rawY - lastY
-                        x += dx
-                        y += dy
-                        lastX = event.rawX
-                        lastY = event.rawY
-                    }
-                    true
+                        val dx = event.rawX - lastX; val dy = event.rawY - lastY
+                        x += dx; y += dy
+                        lastX = event.rawX; lastY = event.rawY
+                    }; true
                 }
-                MotionEvent.ACTION_UP -> {
-                    isDragging = false
-                    true
-                }
+                MotionEvent.ACTION_UP -> { isDragging = false; true }
                 else -> false
             }
         }
