@@ -71,13 +71,15 @@ class SplashActivity : AppCompatActivity() {
         btnContactDev = findViewById(R.id.btnContactDev)
         btnAgreeEnter = findViewById(R.id.btnAgreeEnter)
 
-        // “同意并进入”按钮 → 直接进入主界面
+        // “同意并进入”按钮 → 停止视频 → 进入主界面
         btnAgreeEnter.setOnClickListener {
+            videoView.stop()
             jumpToMain()
         }
 
-        // “联系开发者”按钮 → 保存二维码 → 跳转微信
+        // “联系开发者”按钮 → 停止视频 → 保存二维码 → 跳转微信
         btnContactDev.setOnClickListener {
+            videoView.stop()
             saveQrToGallery()
         }
 
@@ -93,6 +95,7 @@ class SplashActivity : AppCompatActivity() {
         }
 
         videoView.setOnCompletionListener {
+            videoView.stop()
             showDisclaimer()
         }
 
@@ -100,7 +103,12 @@ class SplashActivity : AppCompatActivity() {
 
         tvSkip.visibility = View.VISIBLE
         tvSkip.text = ""
-        tvSkip.setOnClickListener { showDisclaimer() }
+        tvSkip.setOnClickListener {
+            // 点击跳过：停止视频，停止倒计时，显示免责声明
+            videoView.stop()
+            countDownTimer?.cancel()
+            showDisclaimer()
+        }
     }
 
     override fun onResume() {
@@ -177,7 +185,7 @@ class SplashActivity : AppCompatActivity() {
         finish()
     }
 
-    // 品牌字母动画
+    // 品牌字母动画（保持不变）
     private fun startPremiumLetterAnimation() {
         if (isAnimationCancelled) return
 
@@ -259,13 +267,18 @@ class SplashActivity : AppCompatActivity() {
                 } else {
                     if (textView.text != "跳过") {
                         textView.text = "跳过"
-                        textView.setOnClickListener { showDisclaimer() }
+                        textView.setOnClickListener {
+                            videoView.stop()
+                            countDownTimer?.cancel()
+                            showDisclaimer()
+                        }
                         skipAppearAnimation(textView)
                     }
                 }
             }
 
             override fun onFinish() {
+                videoView.stop()
                 showDisclaimer()
             }
         }.start()
@@ -294,6 +307,7 @@ class SplashActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        videoView.stop()
         isAnimationCancelled = true
         handler.removeCallbacksAndMessages(null)
         countDownTimer?.cancel()
