@@ -1,110 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:gravity="center"
     android:orientation="vertical"
-    android:background="@drawable/bg_pink_gradient"
-    android:padding="20dp"
-    android:gravity="center_horizontal">
+    android:background="#FF3A1C71">
 
-    <!-- VPN 状态 -->
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="30dp"
-        android:gravity="center_vertical">
+    <Button
+        android:id="@+id/btnLandscape"
+        android:layout_width="200dp"
+        android:layout_height="48dp"
+        android:text="横版进"
+        android:textColor="#FFFFFF"
+        android:background="#88888888" />
 
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/ic_vpn" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="VPN 已激活"
-            android:textColor="#4CAF50"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:layout_marginStart="8dp"/>
-    </LinearLayout>
-
-    <!-- 使用说明卡片 -->
-    <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="28dp"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="4dp"
-        app:cardBackgroundColor="#80FFFFFF">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="18dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="使用说明"
-                android:textSize="18sp"
-                android:textColor="#333333"
-                android:textStyle="bold"
-                android:layout_marginBottom="10dp"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="1. 如果截图权限按应用单独授权，请选择你当前正在运行的台球游戏。\n\n2. 桌布请尽量精确对齐球桌内缘，辅助线会更稳定。\n\n3. 系统设置相关入口已放在下方，需要时再手动处理即可。"
-                android:textSize="14sp"
-                android:textColor="#555555"
-                android:lineSpacingExtra="4dp"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="系统设置建议"
-                android:textSize="16sp"
-                android:textColor="#333333"
-                android:textStyle="bold"
-                android:layout_marginTop="16dp"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="为避免悬浮服务被系统回收，建议你在需要时手动加入电池优化白名单或前往应用设置页。"
-                android:textSize="14sp"
-                android:textColor="#555555"
-                android:layout_marginTop="6dp"/>
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
-
-    <!-- 横竖屏按钮 -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="24dp"
-        android:gravity="center">
-
-        <Button
-            android:id="@+id/btnLandscape"
-            style="@style/PinkGlassButton"
-            android:text="横版进"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_marginEnd="12dp"/>
-
-        <Button
-            android:id="@+id/btnPortrait"
-            style="@style/PinkGlassButton"
-            android:text="竖版进"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_marginStart="12dp"/>
-    </LinearLayout>
-
+    <Button
+        android:id="@+id/btnPortrait"
+        android:layout_width="200dp"
+        android:layout_height="48dp"
+        android:text="竖版进"
+        android:textColor="#FFFFFF"
+        android:background="#88888888"
+        android:layout_marginTop="16dp" />
 </LinearLayout>
