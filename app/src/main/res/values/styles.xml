@@ -1,7 +1,20 @@
 <resources>
+    <!-- 原有粉色玻璃按钮样式 -->
     <style name="PinkGlassButton" parent="Widget.MaterialComponents.Button">
         <item name="android:background">@drawable/glass_btn_bg</item>
         <item name="android:textColor">#333333</item>
         <item name="android:textSize">14sp</item>
+    </style>
+
+    <!-- 新增：模式选择条按钮样式 -->
+    <style name="ModeBtn">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingHorizontal">10dp</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:background">@drawable/mode_btn_bg</item>
     </style>
 </resources>
