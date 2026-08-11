@@ -6,7 +6,6 @@
     android:background="@drawable/params_panel_bg"
     android:padding="16dp">
 
-    <!-- 标题栏（可拖动） -->
     <TextView
         android:id="@+id/tvPanelTitle"
         android:layout_width="match_parent"
@@ -126,7 +125,6 @@
             android:progressDrawable="@drawable/seekbar_progress" />
     </LinearLayout>
 
-    <!-- 完成按钮 -->
     <TextView
         android:id="@+id/btnParamsDone"
         android:layout_width="match_parent"
