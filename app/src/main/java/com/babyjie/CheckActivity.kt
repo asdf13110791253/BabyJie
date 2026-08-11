@@ -11,6 +11,7 @@ class CheckActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_check)
 
+        // 2 秒后自动跳转到横竖屏选择页
         Handler(Looper.getMainLooper()).postDelayed({
             startActivity(Intent(this, OrientationActivity::class.java))
             finish()
