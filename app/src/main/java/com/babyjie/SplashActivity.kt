@@ -34,10 +34,10 @@ class SplashActivity : AppCompatActivity() {
 
     private lateinit var glassLoadingText: GlassLoadingTextView
     private lateinit var disclaimerOverlay: View
-    private lateinit var slideToUnlock: SlideToUnlockView
     private lateinit var videoView: ExoPlayerVideoView
     private lateinit var tvSkip: TextView
     private lateinit var btnContactDev: TextView
+    private lateinit var btnAgreeEnter: TextView
 
     private var wechatLaunched = false
 
@@ -68,12 +68,11 @@ class SplashActivity : AppCompatActivity() {
 
         glassLoadingText = findViewById(R.id.glassLoadingText)
         disclaimerOverlay = findViewById(R.id.disclaimerOverlay)
-        slideToUnlock = findViewById(R.id.slideToUnlock)
         btnContactDev = findViewById(R.id.btnContactDev)
+        btnAgreeEnter = findViewById(R.id.btnAgreeEnter)
 
-        // 滑动“同意进入” → 直接进入主界面
-        slideToUnlock.setHintText("同意进入")
-        slideToUnlock.onUnlockListener = {
+        // “同意并进入”按钮 → 直接进入主界面
+        btnAgreeEnter.setOnClickListener {
             jumpToMain()
         }
 
@@ -114,7 +113,6 @@ class SplashActivity : AppCompatActivity() {
     private fun showDisclaimer() {
         if (disclaimerOverlay.visibility == View.VISIBLE) return
         disclaimerOverlay.visibility = View.VISIBLE
-        slideToUnlock.reset()
     }
 
     private fun saveQrToGallery() {
