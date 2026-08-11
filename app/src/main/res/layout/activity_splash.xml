@@ -24,7 +24,7 @@
         android:layout_gravity="bottom"
         android:background="@drawable/gradient_bottom" />
 
-    <!-- 彩色字母品牌动画区域（居中） -->
+    <!-- 彩色字母品牌动画区域 -->
     <LinearLayout
         android:id="@+id/llBrand"
         android:layout_width="wrap_content"
@@ -137,10 +137,9 @@
             android:shadowDx="0"
             android:shadowDy="0"
             android:shadowRadius="16" />
-
     </LinearLayout>
 
-    <!-- 跳过按钮（玻璃质感） -->
+    <!-- 跳过按钮 -->
     <TextView
         android:id="@+id/tvSkipCountdown"
         android:layout_width="wrap_content"
@@ -172,7 +171,7 @@
         android:text="Babyje"
         android:textSize="170sp" />
 
-    <!-- ================== 免责声明层（美化版） ================== -->
+    <!-- ================== 免责声明层（美化版 + 二维码） ================== -->
     <FrameLayout
         android:id="@+id/disclaimerOverlay"
         android:layout_width="match_parent"
@@ -188,7 +187,7 @@
             android:layout_height="match_parent"
             android:background="@drawable/disclaimer_bg_gradient" />
 
-        <!-- 内容布局 -->
+        <!-- 内容 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -262,16 +261,43 @@
                 </ScrollView>
             </LinearLayout>
 
+            <!-- ========== 扫码添加开发者微信 ========== -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp">
+
+                <ImageView
+                    android:id="@+id/ivWechatQr"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:src="@drawable/qrcode_wechat"
+                    android:scaleType="fitCenter"
+                    android:background="@drawable/disclaimer_text_card_bg"
+                    android:padding="8dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="扫码添加开发者微信"
+                    android:textColor="#CCFFFFFF"
+                    android:textSize="12sp"
+                    android:layout_marginTop="6dp" />
+            </LinearLayout>
+            <!-- ====================================== -->
+
             <!-- 滑动解锁控件 -->
             <com.babyjie.SlideToUnlockView
                 android:id="@+id/slideToUnlock"
                 android:layout_width="match_parent"
                 android:layout_height="70dp"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="16dp"
                 android:layout_marginStart="8dp"
                 android:layout_marginEnd="8dp" />
         </LinearLayout>
     </FrameLayout>
-    <!-- ============================================================= -->
 
 </FrameLayout>
