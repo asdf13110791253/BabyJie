@@ -1,5 +1,9 @@
 package com.babyjie
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.graphics.Bitmap
@@ -10,12 +14,14 @@ import android.media.Image
 import android.media.ImageReader
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
+import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.WindowManager
+import androidx.core.app.NotificationCompat
 
 class ScreenCaptureService : Service() {
 
@@ -25,9 +31,7 @@ class ScreenCaptureService : Service() {
     private val handler = Handler(Looper.getMainLooper())
     private val tableDetector = TableDetector()
     private val ballDetector = BallDetector()
-
-    // 控制帧率：每帧间隔约 33ms 对应 30fps，实际可根据性能调整
-    private val frameIntervalMs = 33L
+    private var frameIntervalMs = 33L // 约30fps
 
     interface DetectionCallback {
         fun onTableDetected(isTablePresent: Boolean, ballPosition: BallPosition?)
@@ -55,37 +59,49 @@ class ScreenCaptureService : Service() {
         projection = projectionManager.getMediaProjection(resultCode, data)
 
         startCapture()
+        startForegroundService()
         return START_STICKY
+    }
+
+    private fun startForegroundService() {
+        val channelId = "screen_capture_channel"
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(channelId, "录屏服务", NotificationManager.IMPORTANCE_LOW)
+            val manager = getSystemService(NotificationManager::class.java)
+            manager?.createNotificationChannel(channel)
+        }
+        val intent = Intent(this, MainActivity::class.java)
+        val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+        val notification = NotificationCompat.Builder(this, channelId)
+            .setContentTitle("录屏分析中")
+            .setContentText("正在捕捉画面…")
+            .setSmallIcon(R.drawable.ic_launcher_temp)
+            .setContentIntent(pendingIntent)
+            .setOngoing(true)
+            .build()
+        startForeground(2, notification)
     }
 
     private fun startCapture() {
         val metrics = DisplayMetrics()
         val wm = getSystemService(WINDOW_SERVICE) as WindowManager
         wm.defaultDisplay.getMetrics(metrics)
-        val width = metrics.widthPixels
-        val height = metrics.heightPixels
-
-        // 进一步降低分辨率以提升帧率
-        val captureWidth = width / 3
-        val captureHeight = height / 3
+        val captureWidth = metrics.widthPixels / 3
+        val captureHeight = metrics.heightPixels / 3
 
         imageReader = ImageReader.newInstance(captureWidth, captureHeight, PixelFormat.RGBA_8888, 2)
-
         virtualDisplay = projection?.createVirtualDisplay(
-            "ScreenCapture",
-            captureWidth, captureHeight, metrics.densityDpi,
+            "ScreenCapture", captureWidth, captureHeight, metrics.densityDpi,
             DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
             imageReader?.surface, null, null
         )
-
-        // 启动定时检测
         scheduleFrameProcessing()
     }
 
     private fun scheduleFrameProcessing() {
         handler.postDelayed({
             processLatestFrame()
-            scheduleFrameProcessing() // 循环
+            scheduleFrameProcessing()
         }, frameIntervalMs)
     }
 
@@ -98,15 +114,13 @@ class ScreenCaptureService : Service() {
                 if (bitmap != null) {
                     val hasTable = tableDetector.detectTable(bitmap)
                     var ballPos: BallPosition? = null
-                    if (hasTable) {
-                        ballPos = ballDetector.detectCueBall(bitmap, null)
-                    }
+                    if (hasTable) ballPos = ballDetector.detectCueBall(bitmap, null)
                     detectionCallback?.onTableDetected(hasTable, ballPos)
                     bitmap.recycle()
                 }
             }
         } catch (e: Exception) {
-            Log.e("ScreenCapture", "Frame processing error", e)
+            Log.e("ScreenCapture", "Frame error", e)
         } finally {
             image?.close()
         }
@@ -119,11 +133,7 @@ class ScreenCaptureService : Service() {
         val pixelStride = planes[0].pixelStride
         val rowStride = planes[0].rowStride
         val rowPadding = rowStride - pixelStride * image.width
-        val bitmap = Bitmap.createBitmap(
-            image.width + rowPadding / pixelStride,
-            image.height,
-            Bitmap.Config.ARGB_8888
-        )
+        val bitmap = Bitmap.createBitmap(image.width + rowPadding / pixelStride, image.height, Bitmap.Config.ARGB_8888)
         bitmap.copyPixelsFromBuffer(buffer)
         return bitmap
     }
@@ -133,6 +143,7 @@ class ScreenCaptureService : Service() {
         virtualDisplay?.release()
         imageReader?.close()
         projection?.stop()
+        stopForeground(true)
         super.onDestroy()
     }
 }
