@@ -12,6 +12,7 @@ enum class LineType {
 }
 
 data class AimLine(val start: PointF, val end: PointF, val type: LineType)
+data class TargetInfo(val position: PointF, val ball: BallPosition, val score: Double)
 
 class PathCalculator {
     private val pockets = listOf(
@@ -20,7 +21,31 @@ class PathCalculator {
     )
     data class Pocket(val x: Float, val y: Float)
 
-    // 直球
+    // -------- 智能选球：找出角度最好、离袋口最近的目标球 --------
+    fun findBestTarget(cue: PointF, balls: List<BallPosition>, w: Int, h: Int): TargetInfo? {
+        var best: TargetInfo? = null
+        var bestScore = Double.MAX_VALUE
+
+        for (ball in balls) {
+            if (ball.color == android.graphics.Color.WHITE || distance(cue.x, cue.y, ball.x, ball.y) < 25f) continue
+            val targetPos = PointF(ball.x, ball.y)
+            for (pocket in pockets) {
+                val pocketPos = PointF(pocket.x * w, pocket.y * h)
+                val toPocket = PointF(pocketPos.x - targetPos.x, pocketPos.y - targetPos.y)
+                val cueToTarget = PointF(targetPos.x - cue.x, targetPos.y - cue.y)
+                val angle = angleBetween(toPocket, cueToTarget)
+                val distToPocket = distance(targetPos.x, targetPos.y, pocketPos.x, pocketPos.y)
+                val score = angle * 0.7 + (distToPocket / (w + h)) * 0.3
+                if (score < bestScore) {
+                    bestScore = score
+                    best = TargetInfo(targetPos, ball, score)
+                }
+            }
+        }
+        return best
+    }
+
+    // 直球（带摩擦力缩短）
     fun findStraightShot(cue: PointF, target: PointF, w: Int, h: Int): AimLine? {
         var best: AimLine? = null; var bestAngle = Double.MAX_VALUE
         for (p in pockets) {
@@ -28,15 +53,20 @@ class PathCalculator {
             val toPocket = PointF(px - target.x, py - target.y)
             val cueToTarget = PointF(target.x - cue.x, target.y - cue.y)
             val angle = angleBetween(toPocket, cueToTarget)
-            if (angle < 0.12 && angle < bestAngle) {
+            if (angle < 0.15 && angle < bestAngle) {
                 bestAngle = angle
-                best = AimLine(PointF(target.x, target.y), PointF(px, py), LineType.STRAIGHT)
+                val dist = distance(target.x, target.y, px, py)
+                val shorten = (dist * 0.02f).coerceAtMost(5f)
+                val dirX = (px - target.x) / dist
+                val dirY = (py - target.y) / dist
+                val end = PointF(px - dirX * shorten, py - dirY * shorten)
+                best = AimLine(PointF(target.x, target.y), end, LineType.STRAIGHT)
             }
         }
         return best
     }
 
-    // 翻袋
+    // 翻袋（目标球一库进袋）
     fun findBankShot(target: PointF, w: Int, h: Int): AimLine? {
         val mirrors = listOf(
             PointF(-target.x, target.y), PointF(2*w - target.x, target.y),
@@ -79,7 +109,7 @@ class PathCalculator {
         return best
     }
 
-    // 护边球：白球撞库一次反弹击中目标球
+    // 护边球：白球撞库一次后击中目标球
     fun findCushionShot(cue: PointF, target: PointF, w: Int, h: Int): AimLine? {
         val mirrors = listOf(
             PointF(-cue.x, cue.y), PointF(2*w - cue.x, cue.y),
@@ -123,18 +153,14 @@ class PathCalculator {
         return null
     }
 
-    // 计算两个向量夹角（返回弧度，0~PI）
     private fun angleBetween(v1: PointF, v2: PointF): Double {
         val dot = v1.x.toDouble() * v2.x.toDouble() + v1.y.toDouble() * v2.y.toDouble()
         val m1 = sqrt(v1.x.toDouble().pow(2) + v1.y.toDouble().pow(2))
         val m2 = sqrt(v2.x.toDouble().pow(2) + v2.y.toDouble().pow(2))
         return acos((dot / (m1 * m2)).coerceIn(-1.0, 1.0))
     }
-
-    // 距离计算（返回 Float，保证精确性和调用方便）
     private fun distance(x1: Float, y1: Float, x2: Float, y2: Float): Float {
-        val dx = (x1 - x2).toDouble()
-        val dy = (y1 - y2).toDouble()
+        val dx = (x1 - x2).toDouble(); val dy = (y1 - y2).toDouble()
         return sqrt(dx * dx + dy * dy).toFloat()
     }
 }
