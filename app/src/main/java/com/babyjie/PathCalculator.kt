@@ -36,7 +36,7 @@ class PathCalculator {
         return best
     }
 
-    // 翻袋：目标球通过库边镜像进袋
+    // 翻袋
     fun findBankShot(target: PointF, w: Int, h: Int): AimLine? {
         val mirrors = listOf(
             PointF(-target.x, target.y), PointF(2*w - target.x, target.y),
@@ -56,7 +56,7 @@ class PathCalculator {
         return best
     }
 
-    // 多酷：白球两次镜像后击中目标球
+    // 多酷（白球两库）
     fun findMultiRailShot(cue: PointF, target: PointF, w: Int, h: Int): AimLine? {
         val rails = listOf(
             { p: PointF -> PointF(-p.x, p.y) },
@@ -79,9 +79,8 @@ class PathCalculator {
         return best
     }
 
-    // 护边球：白球撞库一次后反弹击中目标球
+    // 护边球：白球撞库一次反弹击中目标球
     fun findCushionShot(cue: PointF, target: PointF, w: Int, h: Int): AimLine? {
-        // 简化处理：取四个库边的镜像，计算白球→镜像点→目标球是否与袋口共线
         val mirrors = listOf(
             PointF(-cue.x, cue.y), PointF(2*w - cue.x, cue.y),
             PointF(cue.x, -cue.y), PointF(cue.x, 2*h - cue.y)
@@ -130,5 +129,8 @@ class PathCalculator {
         val m2 = sqrt(v2.x.pow(2) + v2.y.pow(2))
         return acos((dot / (m1 * m2)).coerceIn(-1.0, 1.0))
     }
-    private fun distance(x1: Float, y1: Float, x2: Float, y2: Float) = sqrt((x1-x2).pow(2) + (y1-y2).pow(2))
+
+    private fun distance(x1: Float, y1: Float, x2: Float, y2: Float): Float {
+        return sqrt((x1 - x2).pow(2) + (y1 - y2).pow(2))
+    }
 }
