@@ -123,14 +123,18 @@ class PathCalculator {
         return null
     }
 
+    // 计算两个向量夹角（返回弧度，0~PI）
     private fun angleBetween(v1: PointF, v2: PointF): Double {
-        val dot = v1.x * v2.x + v1.y * v2.y
-        val m1 = sqrt(v1.x.pow(2) + v1.y.pow(2))
-        val m2 = sqrt(v2.x.pow(2) + v2.y.pow(2))
+        val dot = v1.x.toDouble() * v2.x.toDouble() + v1.y.toDouble() * v2.y.toDouble()
+        val m1 = sqrt(v1.x.toDouble().pow(2) + v1.y.toDouble().pow(2))
+        val m2 = sqrt(v2.x.toDouble().pow(2) + v2.y.toDouble().pow(2))
         return acos((dot / (m1 * m2)).coerceIn(-1.0, 1.0))
     }
 
+    // 距离计算（返回 Float，保证精确性和调用方便）
     private fun distance(x1: Float, y1: Float, x2: Float, y2: Float): Float {
-        return sqrt((x1 - x2).pow(2) + (y1 - y2).pow(2))
+        val dx = (x1 - x2).toDouble()
+        val dy = (y1 - y2).toDouble()
+        return sqrt(dx * dx + dy * dy).toFloat()
     }
 }
