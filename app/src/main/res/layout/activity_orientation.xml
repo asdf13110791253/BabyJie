@@ -2,9 +2,9 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/orientation_bg_gradient"
     android:gravity="center"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="#FF3A1C71">
 
     <TextView
         android:layout_width="wrap_content"
@@ -17,16 +17,18 @@
 
     <Button
         android:id="@+id/btnPortrait"
-        style="@style/PinkGlassButton"
         android:layout_width="200dp"
         android:layout_height="48dp"
-        android:text="竖屏" />
+        android:text="竖屏"
+        android:textColor="#FFFFFF"
+        android:background="#88888888" />
 
     <Button
         android:id="@+id/btnLandscape"
-        style="@style/PinkGlassButton"
         android:layout_width="200dp"
         android:layout_height="48dp"
         android:text="横屏"
+        android:textColor="#FFFFFF"
+        android:background="#88888888"
         android:layout_marginTop="16dp" />
 </LinearLayout>
