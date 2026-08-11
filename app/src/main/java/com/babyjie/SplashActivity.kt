@@ -1,17 +1,25 @@
 package com.babyjie
 
 import android.animation.ObjectAnimator
+import android.content.ContentValues
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.os.Environment
 import android.os.Handler
 import android.os.Looper
+import android.provider.MediaStore
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.OvershootInterpolator
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import java.io.File
+import java.io.FileOutputStream
 
 class SplashActivity : AppCompatActivity() {
 
@@ -24,6 +32,13 @@ class SplashActivity : AppCompatActivity() {
     private var isAnimationCancelled = false
 
     private lateinit var glassLoadingText: GlassLoadingTextView
+    private lateinit var disclaimerOverlay: View
+    private lateinit var slideToUnlock: SlideToUnlockView
+    private lateinit var videoView: ExoPlayerVideoView
+    private lateinit var tvSkip: TextView
+    private lateinit var btnContactDev: TextView
+
+    private var wechatLaunched = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,10 +54,9 @@ class SplashActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_splash)
 
-        val videoView = findViewById<ExoPlayerVideoView>(R.id.exoPlayerVideoView)
-        val tvSkip = findViewById<TextView>(R.id.tvSkipCountdown)
+        videoView = findViewById(R.id.exoPlayerVideoView)
+        tvSkip = findViewById(R.id.tvSkipCountdown)
 
-        // 收集字母视图（用于之前的品牌动画，如果不需要可以删除相关代码）
         letterViews.add(findViewById(R.id.tvLetter1))
         letterViews.add(findViewById(R.id.tvLetter2))
         letterViews.add(findViewById(R.id.tvLetter3))
@@ -51,8 +65,21 @@ class SplashActivity : AppCompatActivity() {
         letterViews.add(findViewById(R.id.tvLetter6))
         letterViews.add(findViewById(R.id.tvLetter7))
 
-        // 底部玻璃文字
         glassLoadingText = findViewById(R.id.glassLoadingText)
+        disclaimerOverlay = findViewById(R.id.disclaimerOverlay)
+        slideToUnlock = findViewById(R.id.slideToUnlock)
+        btnContactDev = findViewById(R.id.btnContactDev)
+
+        // 滑动“同意进入” -> 直接进入主界面
+        slideToUnlock.setHintText("同意进入")
+        slideToUnlock.onUnlockListener = {
+            jumpToMain()
+        }
+
+        // “联系开发者”按钮 -> 保存二维码 -> 跳转微信
+        btnContactDev.setOnClickListener {
+            saveQrToGallery()
+        }
 
         val videoPath = "android.resource://${packageName}/${R.raw.babyjielogo}"
         videoView.setVideoURI(Uri.parse(videoPath))
@@ -61,25 +88,100 @@ class SplashActivity : AppCompatActivity() {
         videoView.setOnPreparedListener { durationMs ->
             videoDurationMs = durationMs
             startCountdown(tvSkip)
-            // 视频准备好后启动品牌字母动画（如果还想要以前的动画）
             startPremiumLetterAnimation()
-            // 启动底部加载条动画：5秒填满，然后自动消失
-            glassLoadingText.startLoading(5000L) {
-                // 所有字母消失后的回调，这里留空，由视频完成或跳过按钮触发跳转
-            }
+            glassLoadingText.startLoading(5000L)
         }
 
         videoView.setOnCompletionListener {
-            jumpToMain()
+            showDisclaimer()
         }
 
         videoView.start()
 
         tvSkip.visibility = View.VISIBLE
         tvSkip.text = ""
-        tvSkip.setOnClickListener(null)
+        tvSkip.setOnClickListener { showDisclaimer() }
     }
 
+    override fun onResume() {
+        super.onResume()
+        // 从微信返回后自动进入主界面
+        if (wechatLaunched && !hasJumped) {
+            jumpToMain()
+        }
+    }
+
+    private fun showDisclaimer() {
+        if (disclaimerOverlay.visibility == View.VISIBLE) return
+        disclaimerOverlay.visibility = View.VISIBLE
+        slideToUnlock.reset()
+    }
+
+    private fun saveQrToGallery() {
+        try {
+            val bitmap = BitmapFactory.decodeResource(resources, R.drawable.qrcode_wechat)
+            val filename = "BabyJie_WeChat_${System.currentTimeMillis()}.jpg"
+            val saved = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val values = ContentValues().apply {
+                    put(MediaStore.Images.Media.DISPLAY_NAME, filename)
+                    put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+                    put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
+                }
+                val uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+                uri?.let {
+                    contentResolver.openOutputStream(it)?.use { out ->
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, 95, out)
+                    }
+                }
+                uri != null
+            } else {
+                val dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+                if (!dir.exists()) dir.mkdirs()
+                val file = File(dir, filename)
+                FileOutputStream(file).use { out ->
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 95, out)
+                }
+                val mediaScanIntent = Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE)
+                mediaScanIntent.data = Uri.fromFile(file)
+                sendBroadcast(mediaScanIntent)
+                true
+            }
+            if (saved) {
+                Toast.makeText(this, "二维码已保存到相册，即将跳转微信", Toast.LENGTH_SHORT).show()
+                btnContactDev.text = "已保存"
+                btnContactDev.isEnabled = false
+                // 保存成功后自动跳转微信
+                launchWechat()
+            } else {
+                Toast.makeText(this, "保存失败，请重试", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Toast.makeText(this, "保存失败，请检查权限", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun launchWechat() {
+        wechatLaunched = true
+        try {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("weixin://"))
+            startActivity(intent)
+        } catch (e: Exception) {
+            // 如果微信未安装，直接进入主界面
+            jumpToMain()
+        }
+    }
+
+    private fun jumpToMain() {
+        if (hasJumped) return
+        hasJumped = true
+        isAnimationCancelled = true
+        countDownTimer?.cancel()
+        handler.removeCallbacksAndMessages(null)
+        startActivity(Intent(this, MainActivity::class.java))
+        finish()
+    }
+
+    // ========== 品牌字母动画 ==========
     private fun startPremiumLetterAnimation() {
         if (isAnimationCancelled) return
 
@@ -87,7 +189,6 @@ class SplashActivity : AppCompatActivity() {
         val stayDuration = 3000L
         val disappearInterval = 150L
 
-        // 1. 依次出现（淡入 + 轻微放大）
         for (i in letterViews.indices) {
             val delay = appearInterval * i.toLong()
             handler.postDelayed({
@@ -105,7 +206,6 @@ class SplashActivity : AppCompatActivity() {
                 alphaAnim.interpolator = DecelerateInterpolator()
                 scaleXAnim.interpolator = DecelerateInterpolator()
                 scaleYAnim.interpolator = DecelerateInterpolator()
-
                 alphaAnim.duration = 500
                 scaleXAnim.duration = 500
                 scaleYAnim.duration = 500
@@ -116,7 +216,6 @@ class SplashActivity : AppCompatActivity() {
             }, delay)
         }
 
-        // 2. 消失动画开始时间
         val disappearStartTime = appearInterval * letterViews.size.toLong() + stayDuration
         handler.postDelayed({
             if (isAnimationCancelled) return@postDelayed
@@ -135,7 +234,6 @@ class SplashActivity : AppCompatActivity() {
                     scaleXAnim.interpolator = DecelerateInterpolator()
                     scaleYAnim.interpolator = DecelerateInterpolator()
                     transYAnim.interpolator = DecelerateInterpolator()
-
                     alphaAnim.duration = 400
                     scaleXAnim.duration = 400
                     scaleYAnim.duration = 400
@@ -165,16 +263,14 @@ class SplashActivity : AppCompatActivity() {
                 } else {
                     if (textView.text != "跳过") {
                         textView.text = "跳过"
-                        textView.setOnClickListener {
-                            jumpToMain()
-                        }
+                        textView.setOnClickListener { showDisclaimer() }
                         skipAppearAnimation(textView)
                     }
                 }
             }
 
             override fun onFinish() {
-                jumpToMain()
+                showDisclaimer()
             }
         }.start()
     }
@@ -199,16 +295,6 @@ class SplashActivity : AppCompatActivity() {
             .setDuration(350)
             .setInterpolator(OvershootInterpolator(0.8f))
             .start()
-    }
-
-    private fun jumpToMain() {
-        if (hasJumped) return
-        hasJumped = true
-        isAnimationCancelled = true
-        countDownTimer?.cancel()
-        handler.removeCallbacksAndMessages(null)
-        startActivity(Intent(this, MainActivity::class.java))
-        finish()
     }
 
     override fun onDestroy() {
