@@ -22,5 +22,15 @@
             android:name=".MainActivity"
             android:exported="false" />
 
+        <!-- 新增：校验界面 -->
+        <activity
+            android:name=".ui.CheckActivity"
+            android:exported="false" />
+
+        <!-- 新增：横竖屏选择界面 -->
+        <activity
+            android:name=".ui.OrientationActivity"
+            android:exported="false" />
+
     </application>
 </manifest>
