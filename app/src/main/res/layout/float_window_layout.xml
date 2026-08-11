@@ -3,7 +3,7 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content">
 
-    <!-- 横向长条菜单（缩小版） -->
+    <!-- 横向椭圆菜单 -->
     <LinearLayout
         android:id="@+id/menuBar"
         android:layout_width="wrap_content"
