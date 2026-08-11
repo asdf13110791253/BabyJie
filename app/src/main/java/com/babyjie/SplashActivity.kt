@@ -71,14 +71,14 @@ class SplashActivity : AppCompatActivity() {
         btnContactDev = findViewById(R.id.btnContactDev)
         btnAgreeEnter = findViewById(R.id.btnAgreeEnter)
 
-        // ===== 核心修改：同意并进入 → CheckActivity =====
+        // 同意并进入 → 直接跳转横竖屏选择页
         btnAgreeEnter.setOnClickListener {
             videoView.stop()
-            startActivity(Intent(this, CheckActivity::class.java))
+            startActivity(Intent(this, OrientationActivity::class.java))
             finish()
         }
 
-        // 联系开发者按钮（保持原样）
+        // 联系开发者按钮
         btnContactDev.setOnClickListener {
             videoView.stop()
             saveQrToGallery()
@@ -114,7 +114,8 @@ class SplashActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         if (wechatLaunched && !hasJumped) {
-            jumpToMain()
+            startActivity(Intent(this, OrientationActivity::class.java))
+            finish()
         }
     }
 
@@ -134,22 +135,14 @@ class SplashActivity : AppCompatActivity() {
                     put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
                 }
                 val uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
-                uri?.let {
-                    contentResolver.openOutputStream(it)?.use { out ->
-                        bitmap.compress(Bitmap.CompressFormat.JPEG, 95, out)
-                    }
-                }
+                uri?.let { contentResolver.openOutputStream(it)?.use { out -> bitmap.compress(Bitmap.CompressFormat.JPEG, 95, out) } }
                 uri != null
             } else {
                 val dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
                 if (!dir.exists()) dir.mkdirs()
                 val file = File(dir, filename)
-                FileOutputStream(file).use { out ->
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 95, out)
-                }
-                val mediaScanIntent = Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE)
-                mediaScanIntent.data = Uri.fromFile(file)
-                sendBroadcast(mediaScanIntent)
+                FileOutputStream(file).use { out -> bitmap.compress(Bitmap.CompressFormat.JPEG, 95, out) }
+                sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(file)))
                 true
             }
             if (saved) {
@@ -170,21 +163,12 @@ class SplashActivity : AppCompatActivity() {
         try {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("weixin://")))
         } catch (e: Exception) {
-            jumpToMain()
+            startActivity(Intent(this, OrientationActivity::class.java))
+            finish()
         }
     }
 
-    private fun jumpToMain() {
-        if (hasJumped) return
-        hasJumped = true
-        isAnimationCancelled = true
-        countDownTimer?.cancel()
-        handler.removeCallbacksAndMessages(null)
-        startActivity(Intent(this, MainActivity::class.java))
-        finish()
-    }
-
-    // ===== 品牌字母动画（保持不变） =====
+    // 品牌字母动画
     private fun startPremiumLetterAnimation() {
         if (isAnimationCancelled) return
         val appearInterval = 180L
@@ -202,15 +186,13 @@ class SplashActivity : AppCompatActivity() {
                 val alphaAnim = ObjectAnimator.ofFloat(letter, "alpha", 0f, 1f)
                 val scaleXAnim = ObjectAnimator.ofFloat(letter, "scaleX", 0.5f, 1f)
                 val scaleYAnim = ObjectAnimator.ofFloat(letter, "scaleY", 0.5f, 1f)
-                alphaAnim.interpolator = DecelerateInterpolator()
-                scaleXAnim.interpolator = DecelerateInterpolator()
-                scaleYAnim.interpolator = DecelerateInterpolator()
                 alphaAnim.duration = 500
                 scaleXAnim.duration = 500
                 scaleYAnim.duration = 500
-                alphaAnim.start()
-                scaleXAnim.start()
-                scaleYAnim.start()
+                alphaAnim.interpolator = DecelerateInterpolator()
+                scaleXAnim.interpolator = DecelerateInterpolator()
+                scaleYAnim.interpolator = DecelerateInterpolator()
+                alphaAnim.start(); scaleXAnim.start(); scaleYAnim.start()
             }, delay)
         }
         val disappearStartTime = appearInterval * letterViews.size.toLong() + stayDuration
@@ -225,18 +207,12 @@ class SplashActivity : AppCompatActivity() {
                     val scaleXAnim = ObjectAnimator.ofFloat(letter, "scaleX", 1f, 0.6f)
                     val scaleYAnim = ObjectAnimator.ofFloat(letter, "scaleY", 1f, 0.6f)
                     val transYAnim = ObjectAnimator.ofFloat(letter, "translationY", 0f, -30f)
+                    alphaAnim.duration = 400; scaleXAnim.duration = 400; scaleYAnim.duration = 400; transYAnim.duration = 400
                     alphaAnim.interpolator = DecelerateInterpolator()
                     scaleXAnim.interpolator = DecelerateInterpolator()
                     scaleYAnim.interpolator = DecelerateInterpolator()
                     transYAnim.interpolator = DecelerateInterpolator()
-                    alphaAnim.duration = 400
-                    scaleXAnim.duration = 400
-                    scaleYAnim.duration = 400
-                    transYAnim.duration = 400
-                    alphaAnim.start()
-                    scaleXAnim.start()
-                    scaleYAnim.start()
-                    transYAnim.start()
+                    alphaAnim.start(); scaleXAnim.start(); scaleYAnim.start(); transYAnim.start()
                 }, delay)
             }
         }, disappearStartTime)
@@ -265,33 +241,18 @@ class SplashActivity : AppCompatActivity() {
                     }
                 }
             }
-            override fun onFinish() {
-                videoView.stop()
-                showDisclaimer()
-            }
+            override fun onFinish() { videoView.stop(); showDisclaimer() }
         }.start()
     }
 
     private fun pulseAnimation(view: View) {
-        val animX = ObjectAnimator.ofFloat(view, "scaleX", 1f, 1.03f, 1f)
-        animX.duration = 300
-        animX.interpolator = DecelerateInterpolator()
-        animX.start()
-        val animY = ObjectAnimator.ofFloat(view, "scaleY", 1f, 1.03f, 1f)
-        animY.duration = 300
-        animY.interpolator = DecelerateInterpolator()
-        animY.start()
+        ObjectAnimator.ofFloat(view, "scaleX", 1f, 1.03f, 1f).apply { duration = 300; interpolator = DecelerateInterpolator(); start() }
+        ObjectAnimator.ofFloat(view, "scaleY", 1f, 1.03f, 1f).apply { duration = 300; interpolator = DecelerateInterpolator(); start() }
     }
 
     private fun skipAppearAnimation(view: View) {
-        view.scaleX = 0.6f
-        view.scaleY = 0.6f
-        view.animate()
-            .scaleX(1f)
-            .scaleY(1f)
-            .setDuration(350)
-            .setInterpolator(OvershootInterpolator(0.8f))
-            .start()
+        view.scaleX = 0.6f; view.scaleY = 0.6f
+        view.animate().scaleX(1f).scaleY(1f).setDuration(350).setInterpolator(OvershootInterpolator(0.8f)).start()
     }
 
     override fun onDestroy() {
