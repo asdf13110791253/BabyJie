@@ -4,10 +4,12 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.RectF
 
-data class BallPosition(val x: Float, val y: Float, val confidence: Float)
+data class BallPosition(val x: Float, val y: Float, val confidence: Float, val color: Int = Color.WHITE)
 
 class BallDetector {
-    fun detectCueBall(bitmap: Bitmap, region: RectF? = null): BallPosition? {
+
+    fun detectAllBalls(bitmap: Bitmap, region: RectF? = null): List<BallPosition> {
+        val balls = mutableListOf<BallPosition>()
         val width = bitmap.width
         val height = bitmap.height
 
@@ -16,10 +18,8 @@ class BallDetector {
         val right = ((region?.right ?: width.toFloat()) / width).coerceIn(0f, 1f) * width
         val bottom = ((region?.bottom ?: height.toFloat()) / height).coerceIn(0f, 1f) * height
 
-        var bestX = 0f
-        var bestY = 0f
-        var bestScore = 0f
-        val step = 6
+        val step = 8
+        val minDist = 15
 
         for (y in top.toInt() until bottom.toInt() step step) {
             for (x in left.toInt() until right.toInt() step step) {
@@ -28,18 +28,19 @@ class BallDetector {
                 val g = Color.green(pixel)
                 val b = Color.blue(pixel)
                 val brightness = (r + g + b) / 3f
-                val neutrality = 1f - (Math.abs(r - g) + Math.abs(g - b) + Math.abs(b - r)) / 765f
 
-                if (brightness > 180 && neutrality > 0.7f) {
-                    val score = brightness / 255f * neutrality
-                    if (score > bestScore) {
-                        bestScore = score
-                        bestX = x.toFloat()
-                        bestY = y.toFloat()
+                if (brightness > 80) {
+                    if (balls.none { Math.hypot((it.x - x).toDouble(), (it.y - y).toDouble()) < minDist }) {
+                        balls.add(BallPosition(x.toFloat(), y.toFloat(), brightness / 255f, Color.rgb(r, g, b)))
                     }
                 }
             }
         }
-        return if (bestScore > 0.5f) BallPosition(bestX, bestY, bestScore) else null
+        return balls.sortedByDescending { it.confidence }.take(16)
+    }
+
+    fun detectCueBall(bitmap: Bitmap, region: RectF? = null): BallPosition? {
+        val all = detectAllBalls(bitmap, region)
+        return all.maxByOrNull { it.confidence }
     }
 }
