@@ -16,6 +16,7 @@ import android.os.Looper
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Surface
+import android.view.WindowManager
 
 class ScreenCaptureService : Service() {
 
@@ -26,7 +27,6 @@ class ScreenCaptureService : Service() {
     private val tableDetector = TableDetector()
     private val ballDetector = BallDetector()
 
-    // 回调接口，用于通知悬浮窗检测结果
     interface DetectionCallback {
         fun onTableDetected(isTablePresent: Boolean, ballPosition: BallPosition?)
     }
@@ -34,7 +34,12 @@ class ScreenCaptureService : Service() {
     companion object {
         var detectionCallback: DetectionCallback? = null
 
-        fun newIntent(context: android.content.Context, resultCode: Int, data: Intent, orientation: String): Intent {
+        fun newIntent(
+            context: android.content.Context,
+            resultCode: Int,
+            data: Intent,
+            orientation: String
+        ): Intent {
             return Intent(context, ScreenCaptureService::class.java).apply {
                 putExtra("resultCode", resultCode)
                 putExtra("data", data)
@@ -58,7 +63,8 @@ class ScreenCaptureService : Service() {
 
     private fun startCapture() {
         val metrics = DisplayMetrics()
-        windowManager?.defaultDisplay?.getMetrics(metrics)
+        val wm = getSystemService(WINDOW_SERVICE) as WindowManager
+        wm.defaultDisplay.getMetrics(metrics)
         val width = metrics.widthPixels
         val height = metrics.heightPixels
 
@@ -82,14 +88,11 @@ class ScreenCaptureService : Service() {
                 if (image != null) {
                     val bitmap = imageToBitmap(image)
                     if (bitmap != null) {
-                        // 1. 检测台球桌
                         val hasTable = tableDetector.detectTable(bitmap)
                         var ballPos: BallPosition? = null
                         if (hasTable) {
-                            // 2. 如果检测到台球桌，再搜索白球（可传入识别区域）
-                            ballPos = ballDetector.detectCueBall(bitmap, null) // 暂用全图，后续可传入区域
+                            ballPos = ballDetector.detectCueBall(bitmap, null)
                         }
-                        // 回调通知悬浮窗
                         detectionCallback?.onTableDetected(hasTable, ballPos)
                         bitmap.recycle()
                     }
