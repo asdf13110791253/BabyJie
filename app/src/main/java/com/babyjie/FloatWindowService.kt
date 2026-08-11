@@ -27,7 +27,6 @@ class FloatWindowService : Service() {
     private lateinit var mainButton: FrameLayout
     private lateinit var menuBar: LinearLayout
 
-    // 菜单展开/收起控制
     private var isExpanded = false
     private var initialX = 0
     private var initialY = 0
@@ -46,21 +45,20 @@ class FloatWindowService : Service() {
     // 瞄准圈
     private var aimCircleView: AimCircleView? = null
     private var isAimVisible = false
-    private var isAiActive = false  // AI 分析是否激活（用户点击后）
+    private var isAiActive = false
 
     // 数据存储
     private var currentDetectionRegion: RectF? = null
     private var isTableDetected = false
     private var ballPosition: BallPosition? = null
 
-    // 当前参数：力度、角度、灵敏度
+    // 当前参数
     private var powerValue = 50
     private var angleValue = 45
     private var sensitivityValue = 5
 
     private val handler = Handler(Looper.getMainLooper())
 
-    // 悬浮窗布局参数
     private val params by lazy {
         WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
@@ -84,13 +82,11 @@ class FloatWindowService : Service() {
             return
         }
 
-        // 注册检测回调，来自 ScreenCaptureService 的每一帧分析结果
         ScreenCaptureService.detectionCallback = object : ScreenCaptureService.DetectionCallback {
             override fun onTableDetected(isTablePresent: Boolean, ballPosition: BallPosition?) {
                 this@FloatWindowService.isTableDetected = isTablePresent
                 this@FloatWindowService.ballPosition = ballPosition
 
-                // 只在 AI 功能激活时处理瞄准圈
                 if (isAiActive) {
                     handler.post {
                         updateAimCircleByDetection()
@@ -102,7 +98,6 @@ class FloatWindowService : Service() {
         createFloatView()
     }
 
-    // ---------- 初始化悬浮按钮和菜单 ----------
     private fun createFloatView() {
         floatRootView = LayoutInflater.from(this).inflate(R.layout.float_window_layout, null)
         mainButton = floatRootView.findViewById(R.id.floatMainBtn)
@@ -127,9 +122,7 @@ class FloatWindowService : Service() {
                 MotionEvent.ACTION_MOVE -> {
                     val deltaX = event.rawX - initialTouchX
                     val deltaY = event.rawY - initialTouchY
-                    if (Math.sqrt((deltaX * deltaX + deltaY * deltaY).toDouble()) > 10f) {
-                        isDragging = true
-                    }
+                    if (Math.sqrt((deltaX * deltaX + deltaY * deltaY).toDouble()) > 10f) isDragging = true
                     if (isDragging) {
                         params.x = initialX + deltaX.toInt()
                         params.y = initialY + deltaY.toInt()
@@ -148,17 +141,15 @@ class FloatWindowService : Service() {
             }
         }
 
-        // 菜单项 1：AI 分析
+        // 菜单项
         floatRootView.findViewById<TextView>(R.id.menuItem1).setOnClickListener {
             toggleAi()
             hideMenu()
         }
-        // 菜单项 2：台球参数
         floatRootView.findViewById<TextView>(R.id.menuItem2).setOnClickListener {
             if (isParamsVisible) hideParamsPanel() else showParamsPanel()
             hideMenu()
         }
-        // 菜单项 3：桌布调整
         floatRootView.findViewById<TextView>(R.id.menuItem3).setOnClickListener {
             if (isClothVisible) hideTableCloth() else showTableCloth()
             hideMenu()
@@ -166,9 +157,7 @@ class FloatWindowService : Service() {
     }
 
     // ---------- 菜单动画 ----------
-    private fun toggleMenu() {
-        if (isExpanded) hideMenu() else showMenu()
-    }
+    private fun toggleMenu() { if (isExpanded) hideMenu() else showMenu() }
 
     private fun showMenu() {
         if (isExpanded) return
@@ -222,7 +211,6 @@ class FloatWindowService : Service() {
     private fun showTableCloth() {
         if (isClothVisible) return
         isClothVisible = true
-
         tableClothView = TableClothView(this).apply {
             onDoneListener = { region ->
                 currentDetectionRegion = region
@@ -235,8 +223,7 @@ class FloatWindowService : Service() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
                 WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
             else WindowManager.LayoutParams.TYPE_PHONE,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
             PixelFormat.TRANSLUCENT
         )
         windowManager.addView(tableClothView, layoutParams)
@@ -249,17 +236,15 @@ class FloatWindowService : Service() {
         tableClothView = null
     }
 
-    // ---------- 台球参数面板 ----------
+    // ---------- 参数面板 ----------
     private fun showParamsPanel() {
         if (isParamsVisible) return
         isParamsVisible = true
-
         paramsPanelView = ParamsPanelView(this).apply {
             onDoneListener = { power, angle, sensitivity ->
                 powerValue = power
                 angleValue = angle
                 sensitivityValue = sensitivity
-                // 更新瞄准圈大小（如果正在显示）
                 aimCircleView?.circleSizeDp = mapPowerToSize(power)
                 Toast.makeText(this@FloatWindowService, "参数已保存", Toast.LENGTH_SHORT).show()
                 hideParamsPanel()
@@ -271,8 +256,7 @@ class FloatWindowService : Service() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
                 WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
             else WindowManager.LayoutParams.TYPE_PHONE,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
             PixelFormat.TRANSLUCENT
         )
         layoutParams.gravity = Gravity.TOP or Gravity.START
@@ -296,7 +280,6 @@ class FloatWindowService : Service() {
         } else {
             showAimCircle()
             isAiActive = true
-            // 首次显示时，根据当前检测结果更新一次位置
             updateAimCircleByDetection()
         }
     }
@@ -304,7 +287,6 @@ class FloatWindowService : Service() {
     private fun showAimCircle() {
         if (isAimVisible) return
         isAimVisible = true
-
         aimCircleView = AimCircleView(this).apply {
             circleSizeDp = mapPowerToSize(powerValue)
         }
@@ -314,8 +296,7 @@ class FloatWindowService : Service() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
                 WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
             else WindowManager.LayoutParams.TYPE_PHONE,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
             PixelFormat.TRANSLUCENT
         )
         layoutParams.gravity = Gravity.TOP or Gravity.START
@@ -331,43 +312,26 @@ class FloatWindowService : Service() {
         aimCircleView = null
     }
 
-    /**
-     * 根据当前检测结果自动调整瞄准圈的位置和可见性
-     */
     private fun updateAimCircleByDetection() {
         if (!isAimVisible || aimCircleView == null) return
 
         if (isTableDetected) {
-            // 如果检测到台球桌，瞄准圈保持可见
-            if (ballPosition != null) {
-                // 有白球，吸附到白球中心
-                aimCircleView?.moveToScreenPosition(ballPosition!!.x, ballPosition!!.y)
+            val currentBallPos = ballPosition
+            if (currentBallPos != null) {
+                aimCircleView?.moveToScreenPosition(currentBallPos.x, currentBallPos.y)
             } else if (currentDetectionRegion != null) {
-                // 没有白球但有识别区域，移动到区域中心
                 val centerX = currentDetectionRegion!!.centerX()
                 val centerY = currentDetectionRegion!!.centerY()
                 aimCircleView?.moveToScreenPosition(centerX, centerY)
             }
-            // 确保可见（可能之前被隐藏了）
-            if (aimCircleView?.visibility != View.VISIBLE) {
-                aimCircleView?.visibility = View.VISIBLE
-            }
-        } else {
-            // 没有台球桌，自动隐藏瞄准圈（或保持不动，根据需求调整）
-            // aimCircleView?.visibility = View.GONE
-            // 这里选择保持显示，让用户手动拖动
+            aimCircleView?.visibility = View.VISIBLE
         }
     }
 
-    /**
-     * 将力度值映射为瞄准圈直径（dp）
-     */
     private fun mapPowerToSize(power: Int): Float {
-        // 力度 0~100，映射到直径 40~120 dp
         return 40f + (power / 100f) * 80f
     }
 
-    // ---------- 生命周期清理 ----------
     override fun onDestroy() {
         if (isClothVisible && tableClothView != null) windowManager.removeView(tableClothView)
         if (isParamsVisible && paramsPanelView != null) windowManager.removeView(paramsPanelView)
