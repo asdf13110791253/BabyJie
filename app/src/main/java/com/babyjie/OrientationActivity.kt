@@ -20,7 +20,6 @@ class OrientationActivity : AppCompatActivity() {
             selectedOrientation = "portrait"
             requestMediaProjection()
         }
-
         findViewById<Button>(R.id.btnLandscape).setOnClickListener {
             selectedOrientation = "landscape"
             requestMediaProjection()
@@ -34,13 +33,13 @@ class OrientationActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_MEDIA_PROJECTION && resultCode == Activity.RESULT_OK) {
+        if (requestCode == REQUEST_MEDIA_PROJECTION && resultCode == Activity.RESULT_OK && data != null) {
             // 启动录屏服务
-            val captureIntent = ScreenCaptureService.newIntent(this, resultCode, data!!, selectedOrientation)
+            val captureIntent = ScreenCaptureService.newIntent(this, resultCode, data, selectedOrientation)
             startService(captureIntent)
-
-            // 跳转到主界面（主界面会启动悬浮窗）
-            startActivity(Intent(this, MainActivity::class.java))
+            // 启动悬浮窗服务
+            startService(Intent(this, FloatWindowService::class.java))
+            // 关闭当前页，悬浮窗将出现在屏幕顶部
             finish()
         }
     }
