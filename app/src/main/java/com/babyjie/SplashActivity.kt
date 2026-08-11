@@ -71,13 +71,14 @@ class SplashActivity : AppCompatActivity() {
         btnContactDev = findViewById(R.id.btnContactDev)
         btnAgreeEnter = findViewById(R.id.btnAgreeEnter)
 
-        // “同意并进入”按钮 → 停止视频 → 进入主界面
+        // ===== 核心修改：同意并进入 → CheckActivity =====
         btnAgreeEnter.setOnClickListener {
             videoView.stop()
-            jumpToMain()
+            startActivity(Intent(this, CheckActivity::class.java))
+            finish()
         }
 
-        // “联系开发者”按钮 → 停止视频 → 保存二维码 → 跳转微信
+        // 联系开发者按钮（保持原样）
         btnContactDev.setOnClickListener {
             videoView.stop()
             saveQrToGallery()
@@ -167,8 +168,7 @@ class SplashActivity : AppCompatActivity() {
     private fun launchWechat() {
         wechatLaunched = true
         try {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("weixin://"))
-            startActivity(intent)
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("weixin://")))
         } catch (e: Exception) {
             jumpToMain()
         }
@@ -184,14 +184,12 @@ class SplashActivity : AppCompatActivity() {
         finish()
     }
 
-    // 品牌字母动画（保持不变）
+    // ===== 品牌字母动画（保持不变） =====
     private fun startPremiumLetterAnimation() {
         if (isAnimationCancelled) return
-
         val appearInterval = 180L
         val stayDuration = 3000L
         val disappearInterval = 150L
-
         for (i in letterViews.indices) {
             val delay = appearInterval * i.toLong()
             handler.postDelayed({
@@ -201,24 +199,20 @@ class SplashActivity : AppCompatActivity() {
                 letter.scaleX = 0.5f
                 letter.scaleY = 0.5f
                 letter.visibility = View.VISIBLE
-
                 val alphaAnim = ObjectAnimator.ofFloat(letter, "alpha", 0f, 1f)
                 val scaleXAnim = ObjectAnimator.ofFloat(letter, "scaleX", 0.5f, 1f)
                 val scaleYAnim = ObjectAnimator.ofFloat(letter, "scaleY", 0.5f, 1f)
-
                 alphaAnim.interpolator = DecelerateInterpolator()
                 scaleXAnim.interpolator = DecelerateInterpolator()
                 scaleYAnim.interpolator = DecelerateInterpolator()
                 alphaAnim.duration = 500
                 scaleXAnim.duration = 500
                 scaleYAnim.duration = 500
-
                 alphaAnim.start()
                 scaleXAnim.start()
                 scaleYAnim.start()
             }, delay)
         }
-
         val disappearStartTime = appearInterval * letterViews.size.toLong() + stayDuration
         handler.postDelayed({
             if (isAnimationCancelled) return@postDelayed
@@ -227,12 +221,10 @@ class SplashActivity : AppCompatActivity() {
                 handler.postDelayed({
                     if (isAnimationCancelled) return@postDelayed
                     val letter = letterViews[i]
-
                     val alphaAnim = ObjectAnimator.ofFloat(letter, "alpha", 1f, 0f)
                     val scaleXAnim = ObjectAnimator.ofFloat(letter, "scaleX", 1f, 0.6f)
                     val scaleYAnim = ObjectAnimator.ofFloat(letter, "scaleY", 1f, 0.6f)
                     val transYAnim = ObjectAnimator.ofFloat(letter, "translationY", 0f, -30f)
-
                     alphaAnim.interpolator = DecelerateInterpolator()
                     scaleXAnim.interpolator = DecelerateInterpolator()
                     scaleYAnim.interpolator = DecelerateInterpolator()
@@ -241,7 +233,6 @@ class SplashActivity : AppCompatActivity() {
                     scaleXAnim.duration = 400
                     scaleYAnim.duration = 400
                     transYAnim.duration = 400
-
                     alphaAnim.start()
                     scaleXAnim.start()
                     scaleYAnim.start()
@@ -258,7 +249,6 @@ class SplashActivity : AppCompatActivity() {
                 val seconds = millisUntilFinished / 1000
                 val totalSeconds = videoDurationMs / 1000
                 val showSkipAfter = totalSeconds - 5
-
                 if (seconds > showSkipAfter) {
                     textView.text = seconds.toString()
                     textView.setOnClickListener(null)
@@ -275,7 +265,6 @@ class SplashActivity : AppCompatActivity() {
                     }
                 }
             }
-
             override fun onFinish() {
                 videoView.stop()
                 showDisclaimer()
