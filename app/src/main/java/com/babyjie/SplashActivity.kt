@@ -3,6 +3,7 @@ package com.babyjie
 import android.animation.ObjectAnimator
 import android.content.ContentValues
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
@@ -70,13 +71,13 @@ class SplashActivity : AppCompatActivity() {
         slideToUnlock = findViewById(R.id.slideToUnlock)
         btnContactDev = findViewById(R.id.btnContactDev)
 
-        // 滑动“同意进入” -> 直接进入主界面
+        // 滑动“同意进入” → 直接进入主界面
         slideToUnlock.setHintText("同意进入")
         slideToUnlock.onUnlockListener = {
             jumpToMain()
         }
 
-        // “联系开发者”按钮 -> 保存二维码 -> 跳转微信
+        // “联系开发者”按钮 → 保存二维码 → 跳转微信
         btnContactDev.setOnClickListener {
             saveQrToGallery()
         }
@@ -105,7 +106,6 @@ class SplashActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        // 从微信返回后自动进入主界面
         if (wechatLaunched && !hasJumped) {
             jumpToMain()
         }
@@ -150,7 +150,6 @@ class SplashActivity : AppCompatActivity() {
                 Toast.makeText(this, "二维码已保存到相册，即将跳转微信", Toast.LENGTH_SHORT).show()
                 btnContactDev.text = "已保存"
                 btnContactDev.isEnabled = false
-                // 保存成功后自动跳转微信
                 launchWechat()
             } else {
                 Toast.makeText(this, "保存失败，请重试", Toast.LENGTH_SHORT).show()
@@ -166,7 +165,6 @@ class SplashActivity : AppCompatActivity() {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse("weixin://"))
             startActivity(intent)
         } catch (e: Exception) {
-            // 如果微信未安装，直接进入主界面
             jumpToMain()
         }
     }
@@ -181,7 +179,7 @@ class SplashActivity : AppCompatActivity() {
         finish()
     }
 
-    // ========== 品牌字母动画 ==========
+    // 品牌字母动画
     private fun startPremiumLetterAnimation() {
         if (isAnimationCancelled) return
 
