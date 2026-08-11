@@ -1,24 +1,13 @@
 <resources>
-    <!-- 粉色玻璃按钮（用于横竖屏选择页） -->
-    <style name="PinkGlassButton" parent="Widget.MaterialComponents.Button">
-        <item name="android:background">@drawable/btn_glass_bg</item>
+    <!-- 暂时使用最简单的按钮样式，不引用任何自定义 drawable -->
+    <style name="PinkGlassButton" parent="Widget.AppCompat.Button">
+        <item name="android:background">#88888888</item>
         <item name="android:textColor">#FFFFFF</item>
         <item name="android:textSize">16sp</item>
-        <item name="android:textStyle">bold</item>
-        <item name="android:letterSpacing">0.05</item>
-        <item name="android:paddingStart">24dp</item>
-        <item name="android:paddingEnd">24dp</item>
-        <item name="android:layout_marginHorizontal">16dp</item>
-        <item name="android:elevation">4dp</item>
     </style>
 
-    <!-- 模式选择按钮 -->
-    <style name="ModeBtn" parent="Widget.MaterialComponents.Button.UnelevatedButton">
-        <item name="android:background">@drawable/mode_btn_bg</item>
+    <style name="ModeBtn" parent="Widget.AppCompat.Button.Borderless">
         <item name="android:textColor">#FFFFFF</item>
         <item name="android:textSize">12sp</item>
-        <item name="android:textStyle">bold</item>
-        <item name="android:paddingHorizontal">10dp</item>
-        <item name="android:paddingVertical">8dp</item>
     </style>
 </resources>
