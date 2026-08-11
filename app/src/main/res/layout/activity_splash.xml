@@ -203,7 +203,7 @@
             <ImageView
                 android:layout_width="72dp"
                 android:layout_height="72dp"
-                android:src="@mipmap/ic_launcher"
+                android:src="@drawable/ic_launcher_temp"
                 android:scaleType="fitCenter"
                 android:layout_marginBottom="16dp" />
 
