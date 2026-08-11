@@ -1,31 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- 网络权限 -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- 悬浮窗权限 -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <!-- 前台服务权限 -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
         android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:label="BabyJie"
         android:supportsRtl="true"
         android:theme="@style/Theme.BabyJie">
 
-        <activity android:name=".SplashActivity" android:exported="true">
+        <!-- 启动页（视频、免责声明等） -->
+        <activity
+            android:name=".SplashActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <activity android:name=".OrientationActivity" android:exported="false" />
-        <activity android:name=".MainActivity" android:exported="false" />
+        <!-- 横竖屏选择页 -->
+        <activity
+            android:name=".OrientationActivity"
+            android:exported="false" />
 
-        <service android:name=".FloatWindowService" android:exported="false" />
+        <!-- 保活空白页：不显示在最近任务，独立任务栈，防止进程被杀 -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:launchMode="singleInstance"
+            android:taskAffinity="" />
+
+        <!-- 悬浮窗服务（前台服务，降低被杀概率） -->
+        <service
+            android:name=".FloatWindowService"
+            android:exported="false"
+            android:foregroundServiceType="mediaProjection" />
+
+        <!-- 录屏画面捕捉服务 -->
         <service
             android:name=".ScreenCaptureService"
             android:foregroundServiceType="mediaProjection"
             android:exported="false" />
 
     </application>
+
 </manifest>
