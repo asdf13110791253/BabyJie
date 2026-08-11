@@ -7,6 +7,9 @@ import android.view.View
 class AimLineOverlay(context: Context) : View(context) {
 
     private val ballPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+    private val highlightPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE; strokeWidth = 4f; color = Color.YELLOW
+    }
     private val linePaints = mapOf(
         LineType.STRAIGHT to Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE; strokeWidth = 3f
@@ -33,12 +36,16 @@ class AimLineOverlay(context: Context) : View(context) {
     var balls: List<BallPosition> = emptyList()
     var aimLine: AimLine? = null
     var currentMode: LineType = LineType.STRAIGHT
+    var highlightedBall: PointF? = null
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         for (ball in balls) {
             ballPaint.color = ball.color
             canvas.drawCircle(ball.x, ball.y, 7f, ballPaint)
+        }
+        highlightedBall?.let {
+            canvas.drawCircle(it.x, it.y, 12f, highlightPaint)
         }
         val line = aimLine
         if (line != null && line.type == currentMode) {
@@ -49,6 +56,6 @@ class AimLineOverlay(context: Context) : View(context) {
     }
 
     fun clear() {
-        balls = emptyList(); aimLine = null; invalidate()
+        balls = emptyList(); aimLine = null; highlightedBall = null; invalidate()
     }
 }
