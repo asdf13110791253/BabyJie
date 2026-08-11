@@ -104,7 +104,6 @@ class SplashActivity : AppCompatActivity() {
         tvSkip.visibility = View.VISIBLE
         tvSkip.text = ""
         tvSkip.setOnClickListener {
-            // 点击跳过：停止视频，停止倒计时，显示免责声明
             videoView.stop()
             countDownTimer?.cancel()
             showDisclaimer()
