@@ -1,5 +1,5 @@
 <resources>
-    <!-- 粉色玻璃按钮（用在横竖屏选择页） -->
+    <!-- 粉色玻璃按钮（用于横竖屏选择页） -->
     <style name="PinkGlassButton" parent="Widget.MaterialComponents.Button">
         <item name="android:background">@drawable/btn_glass_bg</item>
         <item name="android:textColor">#FFFFFF</item>
