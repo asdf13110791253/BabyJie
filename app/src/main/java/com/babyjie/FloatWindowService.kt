@@ -277,24 +277,21 @@ class FloatWindowService : Service() {
 
     private fun updateOverlay() {
         if (!overlayVisible || lineOverlay == null) return
+        lineOverlay?.balls = allBalls; lineOverlay?.currentMode = currentMode
         val w = displayMetrics.widthPixels; val h = displayMetrics.heightPixels
         val cue = cueBallPos?.let { PointF(it.x, it.y) } ?: return
-
         val best = pathCalc.findBestTarget(cue, allBalls, w, h)
-        var aimLine: AimLine? = null
         if (best != null) {
-            val tp = best.position
+            val tp = best.position; lineOverlay?.highlightedBall = tp
             when (currentMode) {
-                LineType.STRAIGHT -> aimLine = pathCalc.findStraightShot(cue, tp, w, h)
-                LineType.BANK -> aimLine = pathCalc.findBankShot(tp, w, h)
-                LineType.MULTI_RAIL -> aimLine = pathCalc.findMultiRailShot(cue, tp, w, h)
-                LineType.CUSHION_SHOT -> aimLine = pathCalc.findCushionShot(cue, tp, w, h)
-                LineType.PASS -> aimLine = pathCalc.findPassShot(cue, tp, allBalls, w, h)
+                LineType.STRAIGHT -> lineOverlay?.aimLine = pathCalc.findStraightShot(cue, tp, w, h)
+                LineType.BANK -> lineOverlay?.aimLine = pathCalc.findBankShot(tp, w, h)
+                LineType.MULTI_RAIL -> lineOverlay?.aimLine = pathCalc.findMultiRailShot(cue, tp, w, h)
+                LineType.CUSHION_SHOT -> lineOverlay?.aimLine = pathCalc.findCushionShot(cue, tp, w, h)
+                LineType.PASS -> lineOverlay?.aimLine = pathCalc.findPassShot(cue, tp, allBalls, w, h)
             }
-            lineOverlay?.updateBallsAndLine(allBalls, aimLine, tp)
-        } else {
-            lineOverlay?.updateBallsAndLine(allBalls, null, null)
-        }
+        } else lineOverlay?.highlightedBall = null
+        lineOverlay?.invalidate()
     }
 
     private fun dist(x1: Float, y1: Float, x2: Float, y2: Float) = sqrt((x1-x2).pow(2) + (y1-y2).pow(2))
