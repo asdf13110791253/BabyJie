@@ -1,6 +1,5 @@
 package com.babyjie
 
-import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -29,8 +28,10 @@ class FloatWindowService : Service() {
     companion object {
         const val CHANNEL_ID = "float_window_channel"
         const val NOTIFICATION_ID = 1001
-        private const val TOUCH_SLOP = 10f
         private const val TAG = "FloatWindowService"
+        private const val TOUCH_SLOP = 10f
+        private const val CLICK_MAX_DURATION = 300L
+        private const val MENU_MARGIN_DP = 8f
     }
 
     private lateinit var wm: WindowManager
@@ -43,17 +44,24 @@ class FloatWindowService : Service() {
     private var initY = 0
     private var downRawX = 0f
     private var downRawY = 0f
+    private var downTime = 0L
     private var hasMoved = false
 
     private val displayMetrics = DisplayMetrics()
 
+    /** ✅ 核心 flags：FLAG_NOT_FOCUSABLE + FLAG_NOT_TOUCH_MODAL */
     private val floatParams by lazy {
         WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-            else WindowManager.LayoutParams.TYPE_PHONE,
-            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+            else
+                @Suppress("DEPRECATION")
+                WindowManager.LayoutParams.TYPE_PHONE,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                    or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                    or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
@@ -67,15 +75,17 @@ class FloatWindowService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        wm = getSystemService(WINDOW_SERVICE) as WindowManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
             Log.e(TAG, "悬浮窗权限未授予")
             stopSelf()
             return
         }
 
-        startForegroundService()
+        wm = getSystemService(WINDOW_SERVICE) as WindowManager
+        @Suppress("DEPRECATION")
         wm.defaultDisplay.getMetrics(displayMetrics)
+
+        startForegroundService()
 
         try {
             createFloatView()
@@ -87,20 +97,26 @@ class FloatWindowService : Service() {
     }
 
     private fun startForegroundService() {
-        val channelId = "float_window_channel"
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(channelId, "悬浮窗服务", NotificationManager.IMPORTANCE_LOW)
+            val channel = NotificationChannel(CHANNEL_ID, "悬浮窗服务", NotificationManager.IMPORTANCE_LOW)
+            channel.setShowBadge(false)
             getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
         }
+
         val intent = Intent(this, MainActivity::class.java)
-        val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
-        val notification = NotificationCompat.Builder(this, channelId)
+        val pendingIntent = PendingIntent.getActivity(
+            this, 0, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("台球辅助运行中")
             .setContentText("点击悬浮按钮展开菜单")
             .setSmallIcon(android.R.drawable.ic_menu_info_details)
             .setContentIntent(pendingIntent)
             .setOngoing(true)
             .build()
+
         startForeground(NOTIFICATION_ID, notification)
     }
 
@@ -109,22 +125,31 @@ class FloatWindowService : Service() {
         mainBtn = floatRoot.findViewById(R.id.floatMainBtn)
         menuBar = floatRoot.findViewById(R.id.menuBar)
 
-        wm.addView(floatRoot, floatParams)
+        mainBtn.isClickable = true
+        mainBtn.isFocusable = true
 
+        wm.addView(floatRoot, floatParams)
+        setupTouchListener()
+        setupMenuClickListeners()
+    }
+
+    /** ✅ 优化的触摸逻辑：增加时长防误触 */
+    private fun setupTouchListener() {
         mainBtn.setOnTouchListener { _, event ->
-            when (event.action) {
+            when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
                     initX = floatParams.x
                     initY = floatParams.y
                     downRawX = event.rawX
                     downRawY = event.rawY
+                    downTime = System.currentTimeMillis()
                     hasMoved = false
                     true
                 }
                 MotionEvent.ACTION_MOVE -> {
                     val dx = event.rawX - downRawX
                     val dy = event.rawY - downRawY
-                    if (!hasMoved && hypot(dx, dy) > TOUCH_SLOP) {
+                    if (!hasMoved && hypot(dx.toDouble(), dy.toDouble()) > TOUCH_SLOP) {
                         hasMoved = true
                         if (menuExpanded) hideMenu()
                     }
@@ -135,8 +160,11 @@ class FloatWindowService : Service() {
                     }
                     true
                 }
-                MotionEvent.ACTION_UP -> {
-                    if (!hasMoved) {
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    val duration = System.currentTimeMillis() - downTime
+                    if (!hasMoved && duration < CLICK_MAX_DURATION
+                        && event.actionMasked == MotionEvent.ACTION_UP
+                    ) {
                         toggleMenu()
                     }
                     true
@@ -144,18 +172,19 @@ class FloatWindowService : Service() {
                 else -> false
             }
         }
+    }
 
-        floatRoot.findViewById<TextView>(R.id.menuItem1)?.setOnClickListener {
-            Toast.makeText(this, "AI分析功能即将开放", Toast.LENGTH_SHORT).show()
-            hideMenu()
-        }
-        floatRoot.findViewById<TextView>(R.id.menuItem2)?.setOnClickListener {
-            Toast.makeText(this, "台球参数功能即将开放", Toast.LENGTH_SHORT).show()
-            hideMenu()
-        }
-        floatRoot.findViewById<TextView>(R.id.menuItem3)?.setOnClickListener {
-            Toast.makeText(this, "桌布调整功能即将开放", Toast.LENGTH_SHORT).show()
-            hideMenu()
+    private fun setupMenuClickListeners() {
+        val menuItems = mapOf(
+            R.id.menuItem1 to "AI分析功能即将开放",
+            R.id.menuItem2 to "台球参数功能即将开放",
+            R.id.menuItem3 to "桌布调整功能即将开放"
+        )
+        menuItems.forEach { (id, message) ->
+            floatRoot.findViewById<TextView>(id)?.setOnClickListener {
+                Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+                hideMenu()
+            }
         }
     }
 
@@ -163,6 +192,7 @@ class FloatWindowService : Service() {
         if (menuExpanded) hideMenu() else showMenu()
     }
 
+    /** ✅ 坐标转换：屏幕坐标 → 父布局相对坐标 */
     private fun showMenu() {
         if (menuExpanded) return
 
@@ -178,14 +208,10 @@ class FloatWindowService : Service() {
         val menuH = (28 * resources.displayMetrics.density).toInt()
 
         var x = (btnCenterX - menuW / 2f - rootLoc[0]).toInt()
-        var y = (btnTop - menuH - 20 - rootLoc[1]).toInt()
+        var y = (btnTop - menuH - (MENU_MARGIN_DP * resources.displayMetrics.density).toInt() - rootLoc[1]).toInt()
 
         x = x.coerceIn(0, displayMetrics.widthPixels - menuW)
         y = y.coerceAtLeast(0)
-
-        Log.d(TAG, "ButtonCenterX: $btnCenterX, ButtonTop: $btnTop")
-        Log.d(TAG, "RootX: ${rootLoc[0]}, RootY: ${rootLoc[1]}")
-        Log.d(TAG, "MenuFinalX: $x, MenuFinalY: $y")
 
         menuBar.layoutParams.width = menuW
         menuBar.x = x.toFloat()
@@ -201,9 +227,7 @@ class FloatWindowService : Service() {
     }
 
     override fun onDestroy() {
-        if (::floatRoot.isInitialized) {
-            wm.removeView(floatRoot)
-        }
+        if (::floatRoot.isInitialized) wm.removeView(floatRoot)
         stopForeground(true)
         super.onDestroy()
     }
