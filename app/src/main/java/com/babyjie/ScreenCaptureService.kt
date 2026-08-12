@@ -68,12 +68,19 @@ class ScreenCaptureService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        // 确保权限已声明后再启动前台服务
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            startForeground(
-                1001,
-                buildNotification(),
-                android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION
-            )
+            try {
+                startForeground(
+                    1001,
+                    buildNotification(),
+                    android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION
+                )
+            } catch (e: SecurityException) {
+                Log.e("ScreenCapture", "缺少 FOREGROUND_SERVICE_MEDIA_PROJECTION 权限", e)
+                stopSelf()
+                return START_NOT_STICKY
+            }
         } else {
             startForeground(1001, buildNotification())
         }
@@ -95,8 +102,12 @@ class ScreenCaptureService : Service() {
 
         val projectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
         mediaProjection = projectionManager.getMediaProjection(resultCode, data)
+
+        // Android 14 强制要求先注册回调
         mediaProjection?.registerCallback(object : MediaProjection.Callback() {
-            override fun onStop() { Log.i("ScreenCapture", "MediaProjection 已停止") }
+            override fun onStop() {
+                Log.i("ScreenCapture", "MediaProjection 已停止")
+            }
         }, null)
 
         addOverlay()
