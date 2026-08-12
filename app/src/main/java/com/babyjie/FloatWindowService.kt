@@ -11,7 +11,6 @@ import android.os.Build
 import android.os.IBinder
 import android.provider.Settings
 import android.util.DisplayMetrics
-import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -31,9 +30,11 @@ class FloatWindowService : Service() {
     private lateinit var menuBar: LinearLayout
 
     private var menuExpanded = false
-    private var initX = 0; private var initY = 0
-    private var initTX = 0f; private var initTY = 0f
-    private var dragging = false
+    private var initX = 0
+    private var initY = 0
+    private var downX = 0f
+    private var downY = 0f
+    private var hasMoved = false
 
     private var displayMetrics = DisplayMetrics()
 
@@ -42,8 +43,7 @@ class FloatWindowService : Service() {
             WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT,
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
             else WindowManager.LayoutParams.TYPE_PHONE,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
             PixelFormat.TRANSLUCENT
         )
     }
@@ -63,9 +63,8 @@ class FloatWindowService : Service() {
 
         try {
             createFloatView()
-            Log.d("FloatWindow", "悬浮窗创建成功")
         } catch (e: Exception) {
-            Log.e("FloatWindow", "悬浮窗创建失败", e)
+            e.printStackTrace()
             stopSelf()
         }
     }
@@ -81,7 +80,7 @@ class FloatWindowService : Service() {
         val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
         val notification = NotificationCompat.Builder(this, channelId)
             .setContentTitle("台球辅助运行中")
-            .setContentText("点击回到辅助界面")
+            .setContentText("悬浮窗已开启")
             .setSmallIcon(R.drawable.ic_launcher_temp)
             .setContentIntent(pendingIntent)
             .setOngoing(true)
@@ -95,34 +94,39 @@ class FloatWindowService : Service() {
         menuBar = floatRoot.findViewById(R.id.menuBar)
 
         floatParams.gravity = Gravity.TOP or Gravity.START
-        floatParams.x = 100; floatParams.y = 400
+        floatParams.x = 100
+        floatParams.y = 400
         wm.addView(floatRoot, floatParams)
 
-        mainBtn.setOnTouchListener { _, ev ->
-            when (ev.action) {
+        mainBtn.setOnTouchListener { _, event ->
+            when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
-                    initX = floatParams.x; initY = floatParams.y
-                    initTX = ev.rawX; initTY = ev.rawY
-                    dragging = false
+                    initX = floatParams.x
+                    initY = floatParams.y
+                    downX = event.rawX
+                    downY = event.rawY
+                    hasMoved = false
                     true
                 }
                 MotionEvent.ACTION_MOVE -> {
-                    val dx = ev.rawX - initTX
-                    val dy = ev.rawY - initTY
-                    if (Math.sqrt((dx * dx + dy * dy).toDouble()) > 10f) {
-                        dragging = true
-                    }
-                    if (dragging) {
-                        floatParams.x = initX + dx.toInt()
-                        floatParams.y = initY + dy.toInt()
+                    val deltaX = event.rawX - downX
+                    val deltaY = event.rawY - downY
+                    // 移动超过 8 像素才算拖动，防止手抖误触
+                    if (Math.sqrt((deltaX * deltaX + deltaY * deltaY).toDouble()) > 8f) {
+                        hasMoved = true
+                        floatParams.x = initX + deltaX.toInt()
+                        floatParams.y = initY + deltaY.toInt()
                         wm.updateViewLayout(floatRoot, floatParams)
+                        // 拖动时自动收起菜单
+                        if (menuExpanded) {
+                            hideMenu()
+                        }
                     }
                     true
                 }
                 MotionEvent.ACTION_UP -> {
-                    if (!dragging) {
-                        // 点击主按钮：弹出菜单
-                        Toast.makeText(this@FloatWindowService, "点击悬浮窗", Toast.LENGTH_SHORT).show()
+                    if (!hasMoved) {
+                        // 没有移动，视为点击，弹出/收起菜单
                         toggleMenu()
                     }
                     true
@@ -131,7 +135,7 @@ class FloatWindowService : Service() {
             }
         }
 
-        // 菜单项点击
+        // 菜单项点击事件（目前为提示，等资源齐全后可恢复完整功能）
         floatRoot.findViewById<TextView>(R.id.menuItem1)?.setOnClickListener {
             Toast.makeText(this, "AI分析功能即将开放", Toast.LENGTH_SHORT).show()
             hideMenu()
