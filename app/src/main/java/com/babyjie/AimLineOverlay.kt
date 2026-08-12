@@ -55,7 +55,14 @@ class AimLineOverlay(context: Context) : View(context) {
         }
     }
 
+    fun updateBallsAndLine(balls: List<BallPosition>, aimLine: AimLine?, highlighted: PointF?) {
+        this.balls = balls
+        this.aimLine = aimLine
+        this.highlightedBall = highlighted
+        postInvalidate() // 异步刷新，参考 FloatingOverlayView
+    }
+
     fun clear() {
-        balls = emptyList(); aimLine = null; highlightedBall = null; invalidate()
+        balls = emptyList(); aimLine = null; highlightedBall = null; postInvalidate()
     }
 }
