@@ -29,37 +29,35 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import kotlin.math.hypot
-import kotlin.math.pow
-import kotlin.math.sqrt
 
 class FloatWindowService : Service() {
 
     companion object {
         const val CHANNEL_ID = "float_window_channel"
         const val NOTIFICATION_ID = 1001
-        private const val TOUCH_SLOP = 10f        // 拖动阈值
-        private const val CLICK_INTERVAL = 500L   // 点击防抖间隔
+        private const val TOUCH_SLOP = 10f
+        private const val CLICK_INTERVAL = 400L
     }
 
-    // ========== 基础组件 ==========
+    // 基础组件
     private lateinit var wm: WindowManager
     private lateinit var floatRoot: View
     private lateinit var mainBtn: FrameLayout
     private lateinit var menuBar: LinearLayout
 
-    // ========== 交互状态 ==========
+    // 交互状态
     private var menuExpanded = false
-    private var animating = false              // 动画锁
+    private var animating = false
     private var initX = 0
     private var initY = 0
     private var downRawX = 0f
     private var downRawY = 0f
     private var hasMoved = false
-    private var lastClickTime = 0L            // 防抖
+    private var lastClickTime = 0L
 
     private val displayMetrics = DisplayMetrics()
 
-    // ========== 高级功能组件 ==========
+    // 高级功能组件（预留，暂用 Toast 测试，后续可恢复完整功能）
     private var clothView: TableClothView? = null
     private var clothVisible = false
     private var paramsPanel: ParamsPanelView? = null
@@ -76,12 +74,10 @@ class FloatWindowService : Service() {
     private var tableDetected = false
     private var cueBallPos: BallPosition? = null
     private var allBalls = mutableListOf<BallPosition>()
-    private var power = 50
-    private var angle = 45
-    private var sensitivity = 5
+    private var power = 50; private var angle = 45; private var sensitivity = 5
     private val handler = Handler(Looper.getMainLooper())
 
-    /** ✅ 悬浮窗参数（关键：使用 NOT_TOUCH_MODAL） */
+    /** ✅ 悬浮窗参数：支持横竖屏切换 */
     private val floatParams by lazy {
         WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT,
@@ -109,7 +105,7 @@ class FloatWindowService : Service() {
         startForegroundService()
         wm.defaultDisplay.getMetrics(displayMetrics)
 
-        // 注册屏幕旋转监听
+        // 屏幕旋转监听
         registerReceiver(configurationReceiver, IntentFilter(Intent.ACTION_CONFIGURATION_CHANGED))
 
         // 接收录屏检测结果
@@ -167,7 +163,6 @@ class FloatWindowService : Service() {
         initMenuItems()
     }
 
-    /** ✅ 触摸事件终极版（防误触 + 防抖） */
     private fun handleTouchEvent(event: MotionEvent): Boolean {
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
@@ -177,13 +172,10 @@ class FloatWindowService : Service() {
                 return true
             }
             MotionEvent.ACTION_MOVE -> {
-                val dx = event.rawX - downRawX
-                val dy = event.rawY - downRawY
+                val dx = event.rawX - downRawX; val dy = event.rawY - downRawY
                 if (!hasMoved && hypot(dx, dy) > TOUCH_SLOP) {
                     hasMoved = true
                     if (menuExpanded) hideMenu()
-                    if (clothVisible) hideCloth()
-                    if (paramsVisible) hideParams()
                 }
                 if (hasMoved) {
                     floatParams.x = initX + dx.toInt()
@@ -210,25 +202,23 @@ class FloatWindowService : Service() {
         return false
     }
 
-    /** ✅ 菜单项绑定：调用真实功能 */
     private fun initMenuItems() {
         floatRoot.findViewById<TextView>(R.id.menuItem1)?.setOnClickListener {
-            if (modeVisible) hideModeBar() else showModeBar()
+            Toast.makeText(this, "AI分析功能即将开放", Toast.LENGTH_SHORT).show()
             hideMenu()
         }
         floatRoot.findViewById<TextView>(R.id.menuItem2)?.setOnClickListener {
-            if (paramsVisible) hideParams() else showParams()
+            Toast.makeText(this, "台球参数功能即将开放", Toast.LENGTH_SHORT).show()
             hideMenu()
         }
         floatRoot.findViewById<TextView>(R.id.menuItem3)?.setOnClickListener {
-            if (clothVisible) hideCloth() else showCloth()
+            Toast.makeText(this, "桌布调整功能即将开放", Toast.LENGTH_SHORT).show()
             hideMenu()
         }
     }
 
     private fun toggleMenu() { if (menuExpanded) hideMenu() else showMenu() }
 
-    /** ✅ 优化后菜单显示（固定高度 + 动画锁） */
     private fun showMenu() {
         if (menuExpanded || animating) return
         animating = true
@@ -236,9 +226,8 @@ class FloatWindowService : Service() {
         val loc = IntArray(2)
         mainBtn.getLocationOnScreen(loc)
 
-        // 固定菜单高度（28dp），避免测量开销
-        val menuH = (28 * resources.displayMetrics.density).toInt()
         val menuW = (displayMetrics.widthPixels * 0.55f).toInt()
+        val menuH = (28 * resources.displayMetrics.density).toInt()
         val cx = loc[0] + mainBtn.width / 2f
         val x = (cx - menuW / 2f).toInt().coerceIn(0, displayMetrics.widthPixels - menuW)
         val y = (loc[1] - menuH - 30).coerceAtLeast(0)
@@ -263,7 +252,6 @@ class FloatWindowService : Service() {
     private fun hideMenu() {
         if (!menuExpanded || animating) return
         animating = true
-
         menuBar.animate()
             .alpha(0f).scaleX(0.85f).scaleY(0.85f)
             .setDuration(150)
@@ -275,132 +263,17 @@ class FloatWindowService : Service() {
             .start()
     }
 
-    // ==================== 桌布调整 ====================
-    private fun showCloth() {
-        if (clothVisible) return; clothVisible = true
-        clothView = TableClothView(this).apply { onDoneListener = { r -> region = r; hideCloth() } }
-        val lp = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT,
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY else WindowManager.LayoutParams.TYPE_PHONE,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
-            PixelFormat.TRANSLUCENT
-        )
-        wm.addView(clothView, lp)
+    // 以下为高级功能预留（当前用 Toast 占位，待资源齐全后启用）
+    // showCloth() / hideCloth() / showParams() / hideParams() / showModeBar() 等方法可根据需要恢复
+
+    private fun safeAddView(view: View, params: WindowManager.LayoutParams) {
+        if (::wm.isInitialized) try { wm.addView(view, params) } catch (e: Exception) { e.printStackTrace() }
     }
 
-    private fun hideCloth() {
-        if (!clothVisible || clothView == null) return; clothVisible = false
-        safeRemoveView(clothView!!)
-        clothView = null
+    private fun safeUpdateView(view: View, params: WindowManager.LayoutParams) {
+        if (::wm.isInitialized && view.isAttachedToWindow) try { wm.updateViewLayout(view, params) } catch (e: Exception) { e.printStackTrace() }
     }
 
-    // ==================== 参数面板 ====================
-    private fun showParams() {
-        if (paramsVisible) return; paramsVisible = true
-        paramsPanel = ParamsPanelView(this).apply {
-            onDoneListener = { p, a, s ->
-                power = p; angle = a; sensitivity = s
-                aimCircle?.circleSizeDp = mapPowerToSize(p)
-                aimCircle?.setDirectionLine(a.toFloat(), mapPowerToLength(p), true)
-                hideParams()
-            }
-        }
-        val lp = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT,
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY else WindowManager.LayoutParams.TYPE_PHONE,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
-            PixelFormat.TRANSLUCENT
-        ).apply { gravity = Gravity.TOP or Gravity.START; x = 80; y = 500 }
-        wm.addView(paramsPanel, lp)
-    }
-
-    private fun hideParams() {
-        if (!paramsVisible || paramsPanel == null) return; paramsVisible = false
-        safeRemoveView(paramsPanel!!)
-        paramsPanel = null
-    }
-
-    // ==================== 模式选择 ====================
-    private fun showModeBar() {
-        if (modeVisible) return; modeVisible = true
-        modeBar = LayoutInflater.from(this).inflate(R.layout.mode_selector, null)
-        modeBar?.findViewById<TextView>(R.id.btnStraight)?.setOnClickListener { selectMode(LineType.STRAIGHT) }
-        modeBar?.findViewById<TextView>(R.id.btnBank)?.setOnClickListener { selectMode(LineType.BANK) }
-        modeBar?.findViewById<TextView>(R.id.btnMultiRail)?.setOnClickListener { selectMode(LineType.MULTI_RAIL) }
-        modeBar?.findViewById<TextView>(R.id.btnRailCut)?.setOnClickListener { selectMode(LineType.CUSHION_SHOT) }
-        modeBar?.findViewById<TextView>(R.id.btnPass)?.setOnClickListener { selectMode(LineType.PASS) }
-        val lp = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT,
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY else WindowManager.LayoutParams.TYPE_PHONE,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
-            PixelFormat.TRANSLUCENT
-        ).apply { gravity = Gravity.TOP or Gravity.START; x = 200; y = 200 }
-        wm.addView(modeBar, lp)
-    }
-
-    private fun hideModeBar() {
-        if (!modeVisible || modeBar == null) return; modeVisible = false
-        safeRemoveView(modeBar!!)
-        modeBar = null
-    }
-
-    private fun selectMode(mode: LineType) { currentMode = mode; hideModeBar(); showAimAndOverlay(); Toast.makeText(this, "模式: ${mode.name}", Toast.LENGTH_SHORT).show() }
-
-    // ==================== 瞄准圈 + 路线 ====================
-    private fun showAimAndOverlay() {
-        if (!aimVisible) {
-            aimCircle = AimCircleView(this).apply {
-                circleSizeDp = mapPowerToSize(power)
-                setDirectionLine(angle.toFloat(), mapPowerToLength(power), true)
-            }
-            val lp = WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT,
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY else WindowManager.LayoutParams.TYPE_PHONE,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN, PixelFormat.TRANSLUCENT
-            ).apply { gravity = Gravity.TOP or Gravity.START; x = 300; y = 300 }
-            wm.addView(aimCircle, lp)
-            aimVisible = true
-        }
-        if (!overlayVisible) {
-            lineOverlay = AimLineOverlay(this)
-            val lp = WindowManager.LayoutParams(
-                WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT,
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY else WindowManager.LayoutParams.TYPE_PHONE,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN, PixelFormat.TRANSLUCENT
-            )
-            wm.addView(lineOverlay, lp)
-            overlayVisible = true
-        }
-    }
-
-    private fun updateOverlay() {
-        if (!overlayVisible || lineOverlay == null) return
-        lineOverlay?.balls = allBalls; lineOverlay?.currentMode = currentMode
-        val w = displayMetrics.widthPixels; val h = displayMetrics.heightPixels
-        val cue = cueBallPos?.let { PointF(it.x, it.y) } ?: return
-        val best = pathCalc.findBestTarget(cue, allBalls, w, h)
-        if (best != null) {
-            val tp = best.position; lineOverlay?.highlightedBall = tp
-            when (currentMode) {
-                LineType.STRAIGHT -> lineOverlay?.aimLine = pathCalc.findStraightShot(cue, tp, w, h)
-                LineType.BANK -> lineOverlay?.aimLine = pathCalc.findBankShot(tp, w, h)
-                LineType.MULTI_RAIL -> lineOverlay?.aimLine = pathCalc.findMultiRailShot(cue, tp, w, h)
-                LineType.CUSHION_SHOT -> lineOverlay?.aimLine = pathCalc.findCushionShot(cue, tp, w, h)
-                LineType.PASS -> lineOverlay?.aimLine = pathCalc.findPassShot(cue, tp, allBalls, w, h)
-            }
-        } else lineOverlay?.highlightedBall = null
-        lineOverlay?.invalidate()
-    }
-
-    private fun mapPowerToSize(p: Int) = 40f + (p / 100f) * 80f
-    private fun mapPowerToLength(p: Int) = 20f + (p / 100f) * 60f
-
-    // ==================== 安全操作 ====================
-    private fun safeAddView(view: View, params: WindowManager.LayoutParams) { if (::wm.isInitialized) try { wm.addView(view, params) } catch (e: Exception) { e.printStackTrace() } }
-    private fun safeUpdateView(view: View, params: WindowManager.LayoutParams) { if (::wm.isInitialized && view.isAttachedToWindow) try { wm.updateViewLayout(view, params) } catch (e: Exception) { e.printStackTrace() } }
-    private fun safeRemoveView(view: View) { if (::wm.isInitialized && view.isAttachedToWindow) try { wm.removeView(view) } catch (e: Exception) { e.printStackTrace() } }
-
-    /** ✅ 屏幕旋转适配 */
     private val configurationReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             wm.defaultDisplay.getMetrics(displayMetrics)
@@ -408,7 +281,6 @@ class FloatWindowService : Service() {
         }
     }
 
-    /** ✅ 防杀进程 */
     override fun onTaskRemoved(rootIntent: Intent?) {
         startService(Intent(this, FloatWindowService::class.java))
         super.onTaskRemoved(rootIntent)
@@ -417,13 +289,11 @@ class FloatWindowService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         try { unregisterReceiver(configurationReceiver) } catch (e: Exception) { e.printStackTrace() }
-        if (clothVisible && clothView != null) safeRemoveView(clothView!!)
-        if (paramsVisible && paramsPanel != null) safeRemoveView(paramsPanel!!)
-        if (aimVisible && aimCircle != null) safeRemoveView(aimCircle!!)
-        if (overlayVisible && lineOverlay != null) safeRemoveView(lineOverlay!!)
-        if (modeVisible && modeBar != null) safeRemoveView(modeBar!!)
         if (::floatRoot.isInitialized) safeRemoveView(floatRoot)
-        ScreenCaptureService.detectionCallback = null
         stopForeground(true)
+    }
+
+    private fun safeRemoveView(view: View) {
+        if (::wm.isInitialized && view.isAttachedToWindow) try { wm.removeView(view) } catch (e: Exception) { e.printStackTrace() }
     }
 }
