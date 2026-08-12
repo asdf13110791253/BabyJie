@@ -1,10 +1,7 @@
 package com.babyjie
 
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
-import android.app.Service
+import android.app.*
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.PixelFormat
@@ -15,23 +12,39 @@ import android.media.ImageReader
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
 import android.os.Build
-import android.os.Handler
 import android.os.IBinder
-import android.os.Looper
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.WindowManager
 import androidx.core.app.NotificationCompat
+import org.opencv.android.OpenCVLoader
+import org.opencv.android.Utils
+import org.opencv.core.Mat
+import org.opencv.imgproc.Imgproc
+import java.util.concurrent.atomic.AtomicBoolean
 
 class ScreenCaptureService : Service() {
 
-    private var projection: MediaProjection? = null
+    private var mediaProjection: MediaProjection? = null
     private var virtualDisplay: VirtualDisplay? = null
     private var imageReader: ImageReader? = null
-    private val handler = Handler(Looper.getMainLooper())
+
+    private lateinit var windowManager: WindowManager
+    private var screenWidth = 0
+    private var screenHeight = 0
+    private var screenDensity = 0
+
     private val tableDetector = TableDetector()
     private val ballDetector = BallDetector()
-    private var frameIntervalMs = 33L // 约30fps
+
+    // 帧处理节流：避免过度发热，每 200ms 分析一次
+    private val isProcessing = AtomicBoolean(false)
+    private var lastProcessTime = 0L
+    private val minIntervalMs = 200L
+
+    // 后台线程处理图像，防止 UI 卡顿
+    private lateinit var captureThread: android.os.HandlerThread
+    private lateinit var captureHandler: android.os.Handler
 
     interface DetectionCallback {
         fun onTableDetected(isTablePresent: Boolean, ballPosition: BallPosition?)
@@ -40,7 +53,7 @@ class ScreenCaptureService : Service() {
     companion object {
         var detectionCallback: DetectionCallback? = null
 
-        fun newIntent(context: android.content.Context, resultCode: Int, data: Intent, orientation: String): Intent {
+        fun newIntent(context: Context, resultCode: Int, data: Intent, orientation: String): Intent {
             return Intent(context, ScreenCaptureService::class.java).apply {
                 putExtra("resultCode", resultCode)
                 putExtra("data", data)
@@ -49,101 +62,158 @@ class ScreenCaptureService : Service() {
         }
     }
 
+    override fun onCreate() {
+        super.onCreate()
+        if (!OpenCVLoader.initLocal()) {
+            Log.e("ScreenCapture", "OpenCV 初始化失败")
+        }
+        windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
+
+        captureThread = android.os.HandlerThread("CaptureThread").apply { start() }
+        captureHandler = android.os.Handler(captureThread.looper)
+    }
+
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val resultCode = intent?.getIntExtra("resultCode", -1) ?: return START_NOT_STICKY
-        val data = intent?.getParcelableExtra<Intent>("data") ?: return START_NOT_STICKY
+        // 前台服务类型声明（Android 10+ 必需，尤其是 14）
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(
+                1001,
+                buildNotification(),
+                android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION
+            )
+        } else {
+            startForeground(1001, buildNotification())
+        }
 
-        val projectionManager = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-        projection = projectionManager.getMediaProjection(resultCode, data)
+        val resultCode = intent?.getIntExtra("resultCode", Activity.RESULT_CANCELED) ?: Activity.RESULT_CANCELED
+        val data = intent?.getParcelableExtra<Intent>("data")
+
+        if (resultCode != Activity.RESULT_OK || data == null) {
+            Log.e("ScreenCapture", "缺少录屏授权数据")
+            stopSelf()
+            return START_NOT_STICKY
+        }
+
+        val metrics = DisplayMetrics()
+        windowManager.defaultDisplay.getRealMetrics(metrics)
+        screenWidth = metrics.widthPixels
+        screenHeight = metrics.heightPixels
+        screenDensity = metrics.densityDpi
+
+        val projectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+        mediaProjection = projectionManager.getMediaProjection(resultCode, data)
+
+        // 注册回调（Android 14 强制要求）
+        mediaProjection?.registerCallback(object : MediaProjection.Callback() {
+            override fun onStop() {
+                Log.i("ScreenCapture", "MediaProjection 已停止")
+            }
+        }, null)
 
         startCapture()
-        startForegroundService()
         return START_STICKY
     }
 
-    private fun startForegroundService() {
-        val channelId = "screen_capture_channel"
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(channelId, "录屏服务", NotificationManager.IMPORTANCE_LOW)
-            val manager = getSystemService(NotificationManager::class.java)
-            manager?.createNotificationChannel(channel)
-        }
-        val intent = Intent(this, MainActivity::class.java)
-        val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
-        val notification = NotificationCompat.Builder(this, channelId)
-            .setContentTitle("录屏分析中")
-            .setContentText("正在捕捉画面…")
-            .setSmallIcon(R.drawable.ic_launcher_temp)
-            .setContentIntent(pendingIntent)
-            .setOngoing(true)
-            .build()
-        startForeground(2, notification)
-    }
-
     private fun startCapture() {
-        val metrics = DisplayMetrics()
-        val wm = getSystemService(WINDOW_SERVICE) as WindowManager
-        wm.defaultDisplay.getMetrics(metrics)
-        val captureWidth = metrics.widthPixels / 3
-        val captureHeight = metrics.heightPixels / 3
+        imageReader = ImageReader.newInstance(screenWidth, screenHeight, PixelFormat.RGBA_8888, 2)
 
-        imageReader = ImageReader.newInstance(captureWidth, captureHeight, PixelFormat.RGBA_8888, 2)
-        virtualDisplay = projection?.createVirtualDisplay(
-            "ScreenCapture", captureWidth, captureHeight, metrics.densityDpi,
+        virtualDisplay = mediaProjection?.createVirtualDisplay(
+            "BabyJieCapture",
+            screenWidth, screenHeight, screenDensity,
             DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
             imageReader?.surface, null, null
         )
+
+        // 启动定时帧处理
         scheduleFrameProcessing()
     }
 
     private fun scheduleFrameProcessing() {
-        handler.postDelayed({
+        captureHandler.postDelayed({
             processLatestFrame()
             scheduleFrameProcessing()
-        }, frameIntervalMs)
+        }, minIntervalMs)
     }
 
     private fun processLatestFrame() {
-        var image: Image? = null
+        val now = System.currentTimeMillis()
+        if (now - lastProcessTime < minIntervalMs || isProcessing.get()) {
+            return
+        }
+
+        val image = imageReader?.acquireLatestImage() ?: return
+        isProcessing.set(true)
+        lastProcessTime = now
+
         try {
-            image = imageReader?.acquireLatestImage()
-            if (image != null) {
-                val bitmap = imageToBitmap(image)
-                if (bitmap != null) {
-                    val hasTable = tableDetector.detectTable(bitmap)
-                    var ballPos: BallPosition? = null
-                    if (hasTable) ballPos = ballDetector.detectCueBall(bitmap, null)
-                    detectionCallback?.onTableDetected(hasTable, ballPos)
-                    bitmap.recycle()
-                }
+            val bitmap = imageToBitmap(image)
+            image.close()
+
+            val mat = Mat()
+            Utils.bitmapToMat(bitmap, mat)
+            Imgproc.cvtColor(mat, mat, Imgproc.COLOR_RGBA2BGR)
+
+            val hasTable = tableDetector.detectTable(bitmap)
+            var ballPos: BallPosition? = null
+            if (hasTable) {
+                ballPos = ballDetector.detectCueBall(bitmap, null)
             }
+
+            detectionCallback?.onTableDetected(hasTable, ballPos)
+
+            mat.release()
+            bitmap.recycle()
         } catch (e: Exception) {
-            Log.e("ScreenCapture", "Frame error", e)
+            Log.e("ScreenCapture", "帧处理出错", e)
         } finally {
-            image?.close()
+            isProcessing.set(false)
         }
     }
 
-    private fun imageToBitmap(image: Image): Bitmap? {
-        val planes = image.planes
-        if (planes.isEmpty()) return null
-        val buffer = planes[0].buffer
-        val pixelStride = planes[0].pixelStride
-        val rowStride = planes[0].rowStride
+    private fun imageToBitmap(image: Image): Bitmap {
+        val plane = image.planes[0]
+        val buffer = plane.buffer
+        val pixelStride = plane.pixelStride
+        val rowStride = plane.rowStride
         val rowPadding = rowStride - pixelStride * image.width
-        val bitmap = Bitmap.createBitmap(image.width + rowPadding / pixelStride, image.height, Bitmap.Config.ARGB_8888)
+
+        val bitmap = Bitmap.createBitmap(
+            image.width + rowPadding / pixelStride,
+            image.height,
+            Bitmap.Config.ARGB_8888
+        )
         bitmap.copyPixelsFromBuffer(buffer)
-        return bitmap
+
+        return if (rowPadding == 0) bitmap else Bitmap.createBitmap(bitmap, 0, 0, image.width, image.height)
+    }
+
+    private fun buildNotification(): Notification {
+        val channelId = "screen_capture_channel"
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(channelId, "录屏服务", NotificationManager.IMPORTANCE_LOW)
+            (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
+                .createNotificationChannel(channel)
+        }
+        val intent = Intent(this, MainActivity::class.java)
+        val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+        return NotificationCompat.Builder(this, channelId)
+            .setContentTitle("台球辅助运行中")
+            .setContentText("录屏与识别已开启")
+            .setSmallIcon(R.drawable.ic_launcher_temp)
+            .setContentIntent(pendingIntent)
+            .setOngoing(true)
+            .build()
     }
 
     override fun onDestroy() {
-        handler.removeCallbacksAndMessages(null)
+        super.onDestroy()
         virtualDisplay?.release()
         imageReader?.close()
-        projection?.stop()
-        stopForeground(true)
-        super.onDestroy()
+        mediaProjection?.stop()
+        if (::captureThread.isInitialized) {
+            captureThread.quitSafely()
+        }
     }
 }
