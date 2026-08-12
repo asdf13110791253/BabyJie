@@ -24,6 +24,13 @@ import java.io.FileOutputStream
 
 class SplashActivity : AppCompatActivity() {
 
+    companion object {
+        init {
+            // 加载 OpenCV 库，使其在整个应用生命周期内可用
+            System.loadLibrary("opencv_java4")
+        }
+    }
+
     private var countDownTimer: CountDownTimer? = null
     private var hasJumped = false
     private var videoDurationMs: Long = 10000L
