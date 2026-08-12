@@ -38,7 +38,7 @@ class OrientationActivity : AppCompatActivity() {
             return
         }
 
-        // 请求忽略电池优化（如果尚未忽略）
+        // 请求忽略电池优化
         requestIgnoreBatteryOptimization()
 
         val projectionManager = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
@@ -74,11 +74,10 @@ class OrientationActivity : AppCompatActivity() {
                 startService(captureIntent)
                 // 启动悬浮窗服务
                 startService(Intent(this, FloatWindowService::class.java))
-                // 打开透明的保活 Activity，然后关闭自身
-                startActivity(Intent(this, MainActivity::class.java))
             } else {
                 Toast.makeText(this, "需要录屏权限才能使用辅助功能", Toast.LENGTH_SHORT).show()
             }
+            // 无论成功与否，关闭选择页
             finish()
         }
     }
