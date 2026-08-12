@@ -50,11 +50,8 @@ class OrientationActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_MEDIA_PROJECTION) {
             if (resultCode == Activity.RESULT_OK && data != null) {
-                // 启动录屏服务（内部会创建透明画布 + 帧分析）
                 val captureIntent = ScreenCaptureService.newIntent(this, resultCode, data, selectedOrientation)
                 startService(captureIntent)
-
-                // 同时启动悬浮窗服务（粉色按钮 + 菜单）
                 startService(Intent(this, FloatWindowService::class.java))
             } else {
                 Toast.makeText(this, "需要录屏权限才能使用辅助功能", Toast.LENGTH_SHORT).show()
