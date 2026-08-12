@@ -17,10 +17,6 @@ import android.util.DisplayMetrics
 import android.util.Log
 import android.view.WindowManager
 import androidx.core.app.NotificationCompat
-import org.opencv.android.OpenCVLoader
-import org.opencv.android.Utils
-import org.opencv.core.Mat
-import org.opencv.imgproc.Imgproc
 import java.util.concurrent.atomic.AtomicBoolean
 
 class ScreenCaptureService : Service() {
@@ -64,9 +60,6 @@ class ScreenCaptureService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        if (!OpenCVLoader.initLocal()) {
-            Log.e("ScreenCapture", "OpenCV 初始化失败")
-        }
         windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
 
         captureThread = android.os.HandlerThread("CaptureThread").apply { start() }
@@ -151,10 +144,7 @@ class ScreenCaptureService : Service() {
             val bitmap = imageToBitmap(image)
             image.close()
 
-            val mat = Mat()
-            Utils.bitmapToMat(bitmap, mat)
-            Imgproc.cvtColor(mat, mat, Imgproc.COLOR_RGBA2BGR)
-
+            // 使用纯算法检测（不依赖 OpenCV）
             val hasTable = tableDetector.detectTable(bitmap)
             var ballPos: BallPosition? = null
             if (hasTable) {
@@ -163,7 +153,6 @@ class ScreenCaptureService : Service() {
 
             detectionCallback?.onTableDetected(hasTable, ballPos)
 
-            mat.release()
             bitmap.recycle()
         } catch (e: Exception) {
             Log.e("ScreenCapture", "帧处理出错", e)
