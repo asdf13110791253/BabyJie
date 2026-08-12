@@ -15,6 +15,7 @@ import android.os.IBinder
 import android.os.Looper
 import android.provider.Settings
 import android.util.DisplayMetrics
+import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -40,9 +41,13 @@ class FloatWindowService : Service() {
     private var initTX = 0f; private var initTY = 0f
     private var dragging = false
 
+    // 桌布
     private var clothView: TableClothView? = null; private var clothVisible = false
+    // 参数面板
     private var paramsPanel: ParamsPanelView? = null; private var paramsVisible = false
+    // 瞄准圈
     private var aimCircle: AimCircleView? = null; private var aimVisible = false
+    // 模式选择条
     private var modeBar: View? = null; private var modeVisible = false
     private var currentMode = LineType.STRAIGHT
     private var lineOverlay: AimLineOverlay? = null; private var overlayVisible = false
@@ -68,7 +73,6 @@ class FloatWindowService : Service() {
     override fun onBind(i: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        // 如果服务被意外杀死，系统会尝试用相同 intent 重启
         return START_STICKY
     }
 
@@ -78,9 +82,10 @@ class FloatWindowService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
             stopSelf(); return
         }
-        // 启动前台服务，防止被杀
         startForegroundService()
         wm.defaultDisplay.getMetrics(displayMetrics)
+
+        // 设置录屏回调
         ScreenCaptureService.detectionCallback = object : ScreenCaptureService.DetectionCallback {
             override fun onTableDetected(table: Boolean, ball: BallPosition?) {
                 tableDetected = table
@@ -89,7 +94,13 @@ class FloatWindowService : Service() {
                 handler.post { updateOverlay() }
             }
         }
-        createFloatView()
+
+        try {
+            createFloatView()
+        } catch (e: Exception) {
+            Log.e("FloatWindowService", "创建悬浮窗失败", e)
+            stopSelf()
+        }
     }
 
     private fun startForegroundService() {
@@ -169,6 +180,7 @@ class FloatWindowService : Service() {
         menuBar.animate().alpha(0f).scaleX(0.8f).scaleY(0.8f).setDuration(150).withEndAction { menuBar.visibility = View.GONE }.start()
     }
 
+    // ---------- 桌布调整 ----------
     private fun showCloth() {
         if (clothVisible) return; clothVisible = true
         clothView = TableClothView(this).apply { onDoneListener = { r -> region = r; hideCloth() } }
@@ -181,6 +193,7 @@ class FloatWindowService : Service() {
     }
     private fun hideCloth() { if (!clothVisible || clothView == null) return; clothVisible = false; wm.removeView(clothView); clothView = null }
 
+    // ---------- 参数面板 ----------
     private fun showParams() {
         if (paramsVisible) return; paramsVisible = true
         paramsPanel = ParamsPanelView(this).apply {
@@ -196,6 +209,7 @@ class FloatWindowService : Service() {
     }
     private fun hideParams() { if (!paramsVisible || paramsPanel == null) return; paramsVisible = false; wm.removeView(paramsPanel); paramsPanel = null }
 
+    // ---------- 模式选择条 ----------
     private fun showModeBar() {
         if (modeVisible) return; modeVisible = true
         modeBar = LayoutInflater.from(this).inflate(R.layout.mode_selector, null)
@@ -216,6 +230,7 @@ class FloatWindowService : Service() {
 
     private fun selectMode(mode: LineType) { currentMode = mode; hideModeBar(); showAimAndOverlay(); Toast.makeText(this, "模式: ${mode.name}", Toast.LENGTH_SHORT).show() }
 
+    // ---------- 瞄准圈 + 路线覆盖层 ----------
     private fun showAimAndOverlay() {
         if (!aimVisible) {
             aimCircle = AimCircleView(this).apply { circleSizeDp = mapPowerToSize(power); setDirectionLine(angle.toFloat(), mapPowerToLength(power), true) }
