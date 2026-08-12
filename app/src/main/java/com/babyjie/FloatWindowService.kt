@@ -57,7 +57,7 @@ class FloatWindowService : Service() {
 
     private val displayMetrics = DisplayMetrics()
 
-    // 高级功能组件（预留，暂用 Toast 测试，后续可恢复完整功能）
+    // 高级功能组件（暂时用 Toast 占位）
     private var clothView: TableClothView? = null
     private var clothVisible = false
     private var paramsPanel: ParamsPanelView? = null
@@ -108,13 +108,13 @@ class FloatWindowService : Service() {
         // 屏幕旋转监听
         registerReceiver(configurationReceiver, IntentFilter(Intent.ACTION_CONFIGURATION_CHANGED))
 
-        // 接收录屏检测结果
+        // 接收录屏检测结果（暂时不对悬浮窗UI做复杂更新，只保留接口）
         ScreenCaptureService.detectionCallback = object : ScreenCaptureService.DetectionCallback {
             override fun onTableDetected(table: Boolean, ball: BallPosition?) {
                 tableDetected = table
                 if (ball != null) cueBallPos = ball
                 allBalls = if (ball != null) mutableListOf(ball) else mutableListOf()
-                handler.post { updateOverlay() }
+                // 暂时不做任何悬浮窗更新，避免依赖未实现的方法
             }
         }
 
@@ -263,9 +263,12 @@ class FloatWindowService : Service() {
             .start()
     }
 
-    // 以下为高级功能预留（当前用 Toast 占位，待资源齐全后启用）
-    // showCloth() / hideCloth() / showParams() / hideParams() / showModeBar() 等方法可根据需要恢复
+    /** 占位方法，用于未来更新悬浮窗 UI，当前无需实现 */
+    private fun updateOverlay() {
+        // 未来可在这里根据检测结果更新路线显示
+    }
 
+    // 安全操作
     private fun safeAddView(view: View, params: WindowManager.LayoutParams) {
         if (::wm.isInitialized) try { wm.addView(view, params) } catch (e: Exception) { e.printStackTrace() }
     }
@@ -274,6 +277,11 @@ class FloatWindowService : Service() {
         if (::wm.isInitialized && view.isAttachedToWindow) try { wm.updateViewLayout(view, params) } catch (e: Exception) { e.printStackTrace() }
     }
 
+    private fun safeRemoveView(view: View) {
+        if (::wm.isInitialized && view.isAttachedToWindow) try { wm.removeView(view) } catch (e: Exception) { e.printStackTrace() }
+    }
+
+    // 屏幕旋转适配
     private val configurationReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             wm.defaultDisplay.getMetrics(displayMetrics)
@@ -291,9 +299,5 @@ class FloatWindowService : Service() {
         try { unregisterReceiver(configurationReceiver) } catch (e: Exception) { e.printStackTrace() }
         if (::floatRoot.isInitialized) safeRemoveView(floatRoot)
         stopForeground(true)
-    }
-
-    private fun safeRemoveView(view: View) {
-        if (::wm.isInitialized && view.isAttachedToWindow) try { wm.removeView(view) } catch (e: Exception) { e.printStackTrace() }
     }
 }
