@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- 网络权限 -->
+    <!-- 网络权限（已有） -->
     <uses-permission android:name="android.permission.INTERNET" />
-    <!-- 悬浮窗权限 -->
+    <!-- 悬浮窗权限（已有） -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-    <!-- 前台服务权限 -->
+    <!-- 前台服务权限（已有） -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- 前台服务类型权限（Android 14+ 强制要求） -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+    <!-- 通知权限（Android 13+ 需要） -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:allowBackup="true"
@@ -37,8 +41,7 @@
             android:exported="false"
             android:excludeFromRecents="true"
             android:launchMode="singleInstance"
-            android:taskAffinity=""
-            android:configChanges="orientation|screenSize" />
+            android:taskAffinity="" />
 
         <!-- 悬浮窗服务（前台服务，降低被杀概率） -->
         <service
@@ -46,7 +49,7 @@
             android:exported="false"
             android:foregroundServiceType="mediaProjection" />
 
-        <!-- 录屏画面捕捉服务 -->
+        <!-- 录屏画面捕捉服务（前台服务，降低被杀概率） -->
         <service
             android:name=".ScreenCaptureService"
             android:foregroundServiceType="mediaProjection"
