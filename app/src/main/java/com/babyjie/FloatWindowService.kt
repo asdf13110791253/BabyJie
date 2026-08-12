@@ -49,7 +49,6 @@ class FloatWindowService : Service() {
 
     private val displayMetrics = DisplayMetrics()
 
-    /** ✅ 核心 flags：FLAG_NOT_FOCUSABLE + FLAG_NOT_TOUCH_MODAL */
     private val floatParams by lazy {
         WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
@@ -133,7 +132,6 @@ class FloatWindowService : Service() {
         setupMenuClickListeners()
     }
 
-    /** ✅ 优化的触摸逻辑：增加时长防误触 */
     private fun setupTouchListener() {
         mainBtn.setOnTouchListener { _, event ->
             when (event.actionMasked) {
@@ -192,7 +190,6 @@ class FloatWindowService : Service() {
         if (menuExpanded) hideMenu() else showMenu()
     }
 
-    /** ✅ 坐标转换：屏幕坐标 → 父布局相对坐标 */
     private fun showMenu() {
         if (menuExpanded) return
 
@@ -212,6 +209,9 @@ class FloatWindowService : Service() {
 
         x = x.coerceIn(0, displayMetrics.widthPixels - menuW)
         y = y.coerceAtLeast(0)
+
+        Log.d(TAG, "Button screen pos: ($btnLoc[0], $btnLoc[1]), Root screen pos: (${rootLoc[0]}, ${rootLoc[1]})")
+        Log.d(TAG, "Menu computed x=$x, y=$y, w=$menuW, h=$menuH")
 
         menuBar.layoutParams.width = menuW
         menuBar.x = x.toFloat()
