@@ -38,14 +38,13 @@ class OrientationActivity : AppCompatActivity() {
             return
         }
 
-        // 请求忽略电池优化
         requestIgnoreBatteryOptimization()
 
         val projectionManager = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
         try {
             startActivityForResult(projectionManager.createScreenCaptureIntent(), REQUEST_MEDIA_PROJECTION)
         } catch (e: Exception) {
-            Toast.makeText(this, "无法启动录屏授权，请确认系统支持", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "无法启动录屏授权", Toast.LENGTH_LONG).show()
             finish()
         }
     }
@@ -58,9 +57,7 @@ class OrientationActivity : AppCompatActivity() {
                     val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
                     intent.data = Uri.parse("package:$packageName")
                     startActivity(intent)
-                } catch (e: Exception) {
-                    // 忽略
-                }
+                } catch (e: Exception) { }
             }
         }
     }
@@ -69,15 +66,12 @@ class OrientationActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_MEDIA_PROJECTION) {
             if (resultCode == Activity.RESULT_OK && data != null) {
-                // 启动录屏服务
                 val captureIntent = ScreenCaptureService.newIntent(this, resultCode, data, selectedOrientation)
                 startService(captureIntent)
-                // 启动悬浮窗服务
                 startService(Intent(this, FloatWindowService::class.java))
             } else {
                 Toast.makeText(this, "需要录屏权限才能使用辅助功能", Toast.LENGTH_SHORT).show()
             }
-            // 无论成功与否，关闭选择页
             finish()
         }
     }
