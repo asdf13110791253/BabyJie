@@ -38,6 +38,7 @@ class SplashActivity : AppCompatActivity() {
     private lateinit var tvSkip: TextView
     private lateinit var btnContactDev: TextView
     private lateinit var btnAgreeEnter: TextView
+    private lateinit var tvAntiAddiction: TextView
 
     private var wechatLaunched = false
 
@@ -70,15 +71,19 @@ class SplashActivity : AppCompatActivity() {
         disclaimerOverlay = findViewById(R.id.disclaimerOverlay)
         btnContactDev = findViewById(R.id.btnContactDev)
         btnAgreeEnter = findViewById(R.id.btnAgreeEnter)
+        tvAntiAddiction = findViewById(R.id.tvAntiAddiction)
 
-        // 同意并进入 → 直接跳转横竖屏选择页
+        // 启动时显示防沉迷提示
+        tvAntiAddiction.visibility = View.VISIBLE
+
+        // 同意并进入 → 横竖屏选择页
         btnAgreeEnter.setOnClickListener {
             videoView.stop()
             startActivity(Intent(this, OrientationActivity::class.java))
             finish()
         }
 
-        // 联系开发者按钮
+        // 联系开发者 → 保存二维码 → 跳转微信
         btnContactDev.setOnClickListener {
             videoView.stop()
             saveQrToGallery()
@@ -122,8 +127,11 @@ class SplashActivity : AppCompatActivity() {
     private fun showDisclaimer() {
         if (disclaimerOverlay.visibility == View.VISIBLE) return
         disclaimerOverlay.visibility = View.VISIBLE
+        // 隐藏防沉迷提示
+        tvAntiAddiction.visibility = View.GONE
     }
 
+    // ==================== 保存二维码到相册 ====================
     private fun saveQrToGallery() {
         try {
             val bitmap = BitmapFactory.decodeResource(resources, R.drawable.qrcode_wechat)
@@ -168,7 +176,7 @@ class SplashActivity : AppCompatActivity() {
         }
     }
 
-    // 品牌字母动画
+    // ==================== 品牌字母动画 ====================
     private fun startPremiumLetterAnimation() {
         if (isAnimationCancelled) return
         val appearInterval = 180L
@@ -192,7 +200,9 @@ class SplashActivity : AppCompatActivity() {
                 alphaAnim.interpolator = DecelerateInterpolator()
                 scaleXAnim.interpolator = DecelerateInterpolator()
                 scaleYAnim.interpolator = DecelerateInterpolator()
-                alphaAnim.start(); scaleXAnim.start(); scaleYAnim.start()
+                alphaAnim.start()
+                scaleXAnim.start()
+                scaleYAnim.start()
             }, delay)
         }
         val disappearStartTime = appearInterval * letterViews.size.toLong() + stayDuration
@@ -207,17 +217,24 @@ class SplashActivity : AppCompatActivity() {
                     val scaleXAnim = ObjectAnimator.ofFloat(letter, "scaleX", 1f, 0.6f)
                     val scaleYAnim = ObjectAnimator.ofFloat(letter, "scaleY", 1f, 0.6f)
                     val transYAnim = ObjectAnimator.ofFloat(letter, "translationY", 0f, -30f)
-                    alphaAnim.duration = 400; scaleXAnim.duration = 400; scaleYAnim.duration = 400; transYAnim.duration = 400
+                    alphaAnim.duration = 400
+                    scaleXAnim.duration = 400
+                    scaleYAnim.duration = 400
+                    transYAnim.duration = 400
                     alphaAnim.interpolator = DecelerateInterpolator()
                     scaleXAnim.interpolator = DecelerateInterpolator()
                     scaleYAnim.interpolator = DecelerateInterpolator()
                     transYAnim.interpolator = DecelerateInterpolator()
-                    alphaAnim.start(); scaleXAnim.start(); scaleYAnim.start(); transYAnim.start()
+                    alphaAnim.start()
+                    scaleXAnim.start()
+                    scaleYAnim.start()
+                    transYAnim.start()
                 }, delay)
             }
         }, disappearStartTime)
     }
 
+    // ==================== 倒计时 ====================
     private fun startCountdown(textView: TextView) {
         countDownTimer?.cancel()
         countDownTimer = object : CountDownTimer(videoDurationMs, 1000) {
@@ -241,7 +258,10 @@ class SplashActivity : AppCompatActivity() {
                     }
                 }
             }
-            override fun onFinish() { videoView.stop(); showDisclaimer() }
+            override fun onFinish() {
+                videoView.stop()
+                showDisclaimer()
+            }
         }.start()
     }
 
