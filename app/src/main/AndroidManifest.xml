@@ -28,13 +28,20 @@
             android:launchMode="singleInstance"
             android:taskAffinity="" />
 
-        <service android:name=".FloatWindowService"
+        <!-- ✅ 修复1：foregroundServiceType 改为 specialUse，并补充 property 标签 -->
+        <service
+            android:name=".FloatWindowService"
             android:enabled="true"
             android:exported="false"
             android:configChanges="orientation|screenSize"
-            android:foregroundServiceType="mediaProjection" />
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="billiards_assistant_overlay" />
+        </service>
 
-        <service android:name=".ScreenCaptureService"
+        <service
+            android:name=".ScreenCaptureService"
             android:enabled="true"
             android:exported="false"
             android:configChanges="orientation|screenSize"
