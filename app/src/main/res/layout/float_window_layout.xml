@@ -50,5 +50,7 @@
         android:layout_width="56dp"
         android:layout_height="56dp"
         android:background="@drawable/float_btn_bg"
-        android:layout_gravity="top|start"/>
+        android:layout_gravity="top|start"
+        android:clickable="true"
+        android:focusable="true" />
 </FrameLayout>
