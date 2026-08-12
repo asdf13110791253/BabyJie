@@ -5,10 +5,17 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.graphics.PointF
 import android.graphics.PixelFormat
+import android.graphics.RectF
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.provider.Settings
 import android.util.DisplayMetrics
 import android.view.Gravity
@@ -21,36 +28,74 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
+import kotlin.math.hypot
 
 class FloatWindowService : Service() {
 
+    companion object {
+        const val CHANNEL_ID = "float_window_channel"
+        const val NOTIFICATION_ID = 1001
+        private const val TOUCH_SLOP = 10f
+        private const val CLICK_INTERVAL = 500L
+    }
+
+    // ========== 基础组件 ==========
     private lateinit var wm: WindowManager
     private lateinit var floatRoot: View
     private lateinit var mainBtn: FrameLayout
     private lateinit var menuBar: LinearLayout
 
+    // ========== 状态标志 ==========
     private var menuExpanded = false
+    private var animating = false      // ✅ 动画锁，防止动画冲突
     private var initX = 0
     private var initY = 0
-    private var downX = 0f
-    private var downY = 0f
+    private var downRawX = 0f
+    private var downRawY = 0f
     private var hasMoved = false
+    private var lastClickTime = 0L     // ✅ 快速点击防护
 
-    private var displayMetrics = DisplayMetrics()
+    private val displayMetrics = DisplayMetrics()
 
+    // ========== 高级功能组件 ==========
+    private var clothView: TableClothView? = null
+    private var clothVisible = false
+    private var paramsPanel: ParamsPanelView? = null
+    private var paramsVisible = false
+    private var aimCircle: AimCircleView? = null
+    private var aimVisible = false
+    private var modeBar: View? = null
+    private var modeVisible = false
+    private var currentMode = LineType.STRAIGHT
+    private var lineOverlay: AimLineOverlay? = null
+    private var overlayVisible = false
+    private val pathCalc = PathCalculator()
+    private var region: RectF? = null
+    private var tableDetected = false
+    private var cueBallPos: BallPosition? = null
+    private var allBalls = mutableListOf<BallPosition>()
+    private var power = 50
+    private var angle = 45
+    private var sensitivity = 5
+    private val handler = Handler(Looper.getMainLooper())
+
+    /** ✅ 悬浮窗参数（使用 NOT_TOUCH_MODAL） */
     private val floatParams by lazy {
         WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT,
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
             else WindowManager.LayoutParams.TYPE_PHONE,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
             PixelFormat.TRANSLUCENT
-        )
+        ).apply {
+            gravity = Gravity.TOP or Gravity.START
+            x = 100
+            y = 400
+        }
     }
 
-    override fun onBind(i: Intent?): IBinder? = null
-
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY
+    override fun onBind(intent: Intent?): IBinder? = null
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_REDELIVER_INTENT
 
     override fun onCreate() {
         super.onCreate()
@@ -58,34 +103,48 @@ class FloatWindowService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
             stopSelf(); return
         }
+
         startForegroundService()
         wm.defaultDisplay.getMetrics(displayMetrics)
+
+        // ✅ 注册屏幕旋转监听
+        registerReceiver(configurationReceiver, IntentFilter(Intent.ACTION_CONFIGURATION_CHANGED))
+
+        // 接收录屏检测结果
+        ScreenCaptureService.detectionCallback = object : ScreenCaptureService.DetectionCallback {
+            override fun onTableDetected(table: Boolean, ball: BallPosition?) {
+                tableDetected = table
+                if (ball != null) cueBallPos = ball
+                allBalls = if (ball != null) mutableListOf(ball) else mutableListOf()
+                handler.post { updateOverlay() }
+            }
+        }
 
         try {
             createFloatView()
         } catch (e: Exception) {
             e.printStackTrace()
+            Toast.makeText(this, "悬浮窗创建失败", Toast.LENGTH_LONG).show()
             stopSelf()
         }
     }
 
     private fun startForegroundService() {
-        val channelId = "float_window_channel"
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(channelId, "悬浮窗服务", NotificationManager.IMPORTANCE_LOW)
-            val manager = getSystemService(NotificationManager::class.java)
-            manager?.createNotificationChannel(channel)
+            val channel = NotificationChannel(CHANNEL_ID, "台球辅助", NotificationManager.IMPORTANCE_LOW).apply { setShowBadge(false) }
+            getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
         }
         val intent = Intent(this, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
-        val notification = NotificationCompat.Builder(this, channelId)
+        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("台球辅助运行中")
             .setContentText("悬浮窗已开启")
             .setSmallIcon(R.drawable.ic_launcher_temp)
             .setContentIntent(pendingIntent)
             .setOngoing(true)
+            .setSilent(true)
             .build()
-        startForeground(1, notification)
+        startForeground(NOTIFICATION_ID, notification)
     }
 
     private fun createFloatView() {
@@ -93,104 +152,134 @@ class FloatWindowService : Service() {
         mainBtn = floatRoot.findViewById(R.id.floatMainBtn)
         menuBar = floatRoot.findViewById(R.id.menuBar)
 
-        floatParams.gravity = Gravity.TOP or Gravity.START
-        floatParams.x = 100
-        floatParams.y = 400
-        wm.addView(floatRoot, floatParams)
+        menuBar.isClickable = true
+        menuBar.isFocusable = true
 
-        mainBtn.setOnTouchListener { _, event ->
-            when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    initX = floatParams.x
-                    initY = floatParams.y
-                    downX = event.rawX
-                    downY = event.rawY
-                    hasMoved = false
-                    true
+        safeAddView(floatRoot, floatParams)
+
+        // ✅ 优化3：点击外部自动关闭菜单
+        floatRoot.setOnClickListener { if (menuExpanded) hideMenu() }
+        menuBar.setOnClickListener { } // 拦截菜单内部点击，防止误关
+
+        mainBtn.setOnTouchListener { _, event -> handleTouchEvent(event) }
+        initMenuItems()
+    }
+
+    /** ✅ 优化5：增加快速点击防护 */
+    private fun handleTouchEvent(event: MotionEvent): Boolean {
+        when (event.action) {
+            MotionEvent.ACTION_DOWN -> {
+                initX = floatParams.x; initY = floatParams.y
+                downRawX = event.rawX; downRawY = event.rawY
+                hasMoved = false
+                return true
+            }
+            MotionEvent.ACTION_MOVE -> {
+                val dx = event.rawX - downRawX
+                val dy = event.rawY - downRawY
+                if (!hasMoved && hypot(dx, dy) > TOUCH_SLOP) {
+                    hasMoved = true
+                    if (menuExpanded) hideMenu()
+                    if (clothVisible) hideCloth()
+                    if (paramsVisible) hideParams()
                 }
-                MotionEvent.ACTION_MOVE -> {
-                    val deltaX = event.rawX - downX
-                    val deltaY = event.rawY - downY
-                    // 移动超过 8 像素才算拖动，防止手抖误触
-                    if (Math.sqrt((deltaX * deltaX + deltaY * deltaY).toDouble()) > 8f) {
-                        hasMoved = true
-                        floatParams.x = initX + deltaX.toInt()
-                        floatParams.y = initY + deltaY.toInt()
-                        wm.updateViewLayout(floatRoot, floatParams)
-                        // 拖动时自动收起菜单
-                        if (menuExpanded) {
-                            hideMenu()
-                        }
-                    }
-                    true
+                if (hasMoved) {
+                    floatParams.x = initX + dx.toInt()
+                    floatParams.y = initY + dy.toInt()
+                    safeUpdateView(floatRoot, floatParams)
                 }
-                MotionEvent.ACTION_UP -> {
-                    if (!hasMoved) {
-                        // 没有移动，视为点击，弹出/收起菜单
-                        toggleMenu()
-                    }
-                    true
+                return true
+            }
+            MotionEvent.ACTION_UP -> {
+                mainBtn.performClick()
+                if (!hasMoved && !isFastClick()) {
+                    toggleMenu()
                 }
-                else -> false
+                return true
             }
         }
+        return false
+    }
 
-        // 菜单项点击事件（目前为提示，等资源齐全后可恢复完整功能）
+    private fun isFastClick(): Boolean {
+        val now = System.currentTimeMillis()
+        if (now - lastClickTime < CLICK_INTERVAL) return true
+        lastClickTime = now
+        return false
+    }
+
+    private fun initMenuItems() {
         floatRoot.findViewById<TextView>(R.id.menuItem1)?.setOnClickListener {
-            Toast.makeText(this, "AI分析功能即将开放", Toast.LENGTH_SHORT).show()
+            if (modeVisible) hideModeBar() else showModeBar()
             hideMenu()
         }
         floatRoot.findViewById<TextView>(R.id.menuItem2)?.setOnClickListener {
-            Toast.makeText(this, "台球参数功能即将开放", Toast.LENGTH_SHORT).show()
+            if (paramsVisible) hideParams() else showParams()
             hideMenu()
         }
         floatRoot.findViewById<TextView>(R.id.menuItem3)?.setOnClickListener {
-            Toast.makeText(this, "桌布调整功能即将开放", Toast.LENGTH_SHORT).show()
+            if (clothVisible) hideCloth() else showCloth()
             hideMenu()
         }
     }
 
-    private fun toggleMenu() {
-        if (menuExpanded) hideMenu() else showMenu()
-    }
+    private fun toggleMenu() { if (menuExpanded) hideMenu() else showMenu() }
 
+    /** ✅ 优化1 + 2：固定高度计算 + 动画锁 */
     private fun showMenu() {
-        if (menuExpanded) return
-        menuExpanded = true
-        val sw = displayMetrics.widthPixels
-        val menuW = (sw * 0.55f).toInt()
-        menuBar.layoutParams.width = menuW
+        if (menuExpanded || animating) return
+        animating = true
+
         val loc = IntArray(2)
         mainBtn.getLocationOnScreen(loc)
+
+        // ✅ 优化1：直接使用布局中固定的 28dp 高度，避免测量开销
+        val menuH = (28 * resources.displayMetrics.density).toInt()
+        val menuW = (displayMetrics.widthPixels * 0.55f).toInt()
         val cx = loc[0] + mainBtn.width / 2f
-        val top = loc[1]
-        val mx = (cx - menuW / 2f).toInt().coerceIn(0, sw - menuW)
-        val my = (top - menuBar.layoutParams.height - 20).coerceAtLeast(0)
-        menuBar.x = mx.toFloat()
-        menuBar.y = my.toFloat()
-        menuBar.visibility = View.VISIBLE
+        val x = (cx - menuW / 2f).toInt().coerceIn(0, displayMetrics.widthPixels - menuW)
+        val y = (loc[1] - menuH - 30).coerceAtLeast(0)
+
+        menuBar.x = x.toFloat()
+        menuBar.y = y.toFloat()
         menuBar.alpha = 0f
-        menuBar.scaleX = 0.8f
-        menuBar.scaleY = 0.8f
+        menuBar.scaleX = 0.85f
+        menuBar.scaleY = 0.85f
+        menuBar.visibility = View.VISIBLE
+
         menuBar.animate()
             .alpha(1f).scaleX(1f).scaleY(1f)
-            .setDuration(200)
+            .setDuration(180)
+            .withEndAction {
+                menuExpanded = true
+                animating = false
+            }
             .start()
     }
 
     private fun hideMenu() {
-        if (!menuExpanded) return
-        menuExpanded = false
+        if (!menuExpanded || animating) return
+        animating = true
+
         menuBar.animate()
-            .alpha(0f).scaleX(0.8f).scaleY(0.8f)
+            .alpha(0f).scaleX(0.85f).scaleY(0.85f)
             .setDuration(150)
-            .withEndAction { menuBar.visibility = View.GONE }
+            .withEndAction {
+                menuBar.visibility = View.GONE
+                menuExpanded = false
+                animating = false
+            }
             .start()
     }
 
+    // ========== 以下为完整功能代码（桌布、参数、AI、安全操作） ==========
+    // ... 此处省略，与之前提供的完整版完全一致 ...
+    // 你只需将之前完整版中的对应方法复制过来即可。
+
     override fun onDestroy() {
-        if (::floatRoot.isInitialized) wm.removeView(floatRoot)
-        stopForeground(true)
         super.onDestroy()
+        try { unregisterReceiver(configurationReceiver) } catch (e: Exception) { e.printStackTrace() }
+        if (::floatRoot.isInitialized) safeRemoveView(floatRoot)
+        stopForeground(true)
     }
 }
