@@ -26,6 +26,8 @@ class ScreenCaptureService : Service() {
     private var imageReader: ImageReader? = null
 
     private lateinit var windowManager: WindowManager
+    private lateinit var overlayView: FloatingOverlayView
+
     private var screenWidth = 0
     private var screenHeight = 0
     private var screenDensity = 0
@@ -33,12 +35,10 @@ class ScreenCaptureService : Service() {
     private val tableDetector = TableDetector()
     private val ballDetector = BallDetector()
 
-    // 帧处理节流：避免过度发热，每 200ms 分析一次
     private val isProcessing = AtomicBoolean(false)
     private var lastProcessTime = 0L
     private val minIntervalMs = 200L
 
-    // 后台线程处理图像，防止 UI 卡顿
     private lateinit var captureThread: android.os.HandlerThread
     private lateinit var captureHandler: android.os.Handler
 
@@ -61,7 +61,6 @@ class ScreenCaptureService : Service() {
     override fun onCreate() {
         super.onCreate()
         windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
-
         captureThread = android.os.HandlerThread("CaptureThread").apply { start() }
         captureHandler = android.os.Handler(captureThread.looper)
     }
@@ -69,7 +68,6 @@ class ScreenCaptureService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        // 前台服务类型声明（Android 10+ 必需，尤其是 14）
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             startForeground(
                 1001,
@@ -97,29 +95,27 @@ class ScreenCaptureService : Service() {
 
         val projectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
         mediaProjection = projectionManager.getMediaProjection(resultCode, data)
-
-        // 注册回调（Android 14 强制要求）
         mediaProjection?.registerCallback(object : MediaProjection.Callback() {
-            override fun onStop() {
-                Log.i("ScreenCapture", "MediaProjection 已停止")
-            }
+            override fun onStop() { Log.i("ScreenCapture", "MediaProjection 已停止") }
         }, null)
 
+        addOverlay()
         startCapture()
         return START_STICKY
     }
 
+    private fun addOverlay() {
+        overlayView = FloatingOverlayView(this)
+        windowManager.addView(overlayView, FloatingOverlayView.createLayoutParams())
+    }
+
     private fun startCapture() {
         imageReader = ImageReader.newInstance(screenWidth, screenHeight, PixelFormat.RGBA_8888, 2)
-
         virtualDisplay = mediaProjection?.createVirtualDisplay(
-            "BabyJieCapture",
-            screenWidth, screenHeight, screenDensity,
+            "BabyJieCapture", screenWidth, screenHeight, screenDensity,
             DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
             imageReader?.surface, null, null
         )
-
-        // 启动定时帧处理
         scheduleFrameProcessing()
     }
 
@@ -132,9 +128,7 @@ class ScreenCaptureService : Service() {
 
     private fun processLatestFrame() {
         val now = System.currentTimeMillis()
-        if (now - lastProcessTime < minIntervalMs || isProcessing.get()) {
-            return
-        }
+        if (now - lastProcessTime < minIntervalMs || isProcessing.get()) return
 
         val image = imageReader?.acquireLatestImage() ?: return
         isProcessing.set(true)
@@ -144,15 +138,19 @@ class ScreenCaptureService : Service() {
             val bitmap = imageToBitmap(image)
             image.close()
 
-            // 使用纯算法检测（不依赖 OpenCV）
             val hasTable = tableDetector.detectTable(bitmap)
             var ballPos: BallPosition? = null
-            if (hasTable) {
-                ballPos = ballDetector.detectCueBall(bitmap, null)
+            if (hasTable) ballPos = ballDetector.detectCueBall(bitmap, null)
+
+            if (ballPos != null) {
+                val center = android.graphics.PointF(ballPos.x, ballPos.y)
+                val aimEnd = android.graphics.PointF(screenWidth / 2f, screenHeight / 2f)
+                overlayView.updateData(null, center, 25f, Pair(center, aimEnd))
+            } else {
+                overlayView.updateData(null, null, 0f, null)
             }
 
             detectionCallback?.onTableDetected(hasTable, ballPos)
-
             bitmap.recycle()
         } catch (e: Exception) {
             Log.e("ScreenCapture", "帧处理出错", e)
@@ -170,11 +168,9 @@ class ScreenCaptureService : Service() {
 
         val bitmap = Bitmap.createBitmap(
             image.width + rowPadding / pixelStride,
-            image.height,
-            Bitmap.Config.ARGB_8888
+            image.height, Bitmap.Config.ARGB_8888
         )
         bitmap.copyPixelsFromBuffer(buffer)
-
         return if (rowPadding == 0) bitmap else Bitmap.createBitmap(bitmap, 0, 0, image.width, image.height)
     }
 
@@ -182,8 +178,7 @@ class ScreenCaptureService : Service() {
         val channelId = "screen_capture_channel"
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(channelId, "录屏服务", NotificationManager.IMPORTANCE_LOW)
-            (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
-                .createNotificationChannel(channel)
+            (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).createNotificationChannel(channel)
         }
         val intent = Intent(this, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
@@ -201,8 +196,7 @@ class ScreenCaptureService : Service() {
         virtualDisplay?.release()
         imageReader?.close()
         mediaProjection?.stop()
-        if (::captureThread.isInitialized) {
-            captureThread.quitSafely()
-        }
+        if (::overlayView.isInitialized) windowManager.removeView(overlayView)
+        if (::captureThread.isInitialized) captureThread.quitSafely()
     }
 }
