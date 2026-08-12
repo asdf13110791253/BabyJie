@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- 网络权限（已有） -->
+    <!-- 网络权限 -->
     <uses-permission android:name="android.permission.INTERNET" />
-    <!-- 悬浮窗权限（已有） -->
+    <!-- 悬浮窗权限 -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-    <!-- 前台服务权限（已有） -->
+    <!-- 前台服务权限 -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <!-- 前台服务类型权限（Android 14+ 强制要求） -->
+    <!-- 媒体投影前台服务权限（Android 14+ 必需） -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
     <!-- 通知权限（Android 13+ 需要） -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -35,7 +35,7 @@
             android:name=".OrientationActivity"
             android:exported="false" />
 
-        <!-- 保活空白页：不显示在最近任务，独立任务栈，防止进程被杀 -->
+        <!-- 保活空白页（不显示在最近任务，独立任务栈） -->
         <activity
             android:name=".MainActivity"
             android:exported="false"
@@ -46,14 +46,18 @@
         <!-- 悬浮窗服务（前台服务，降低被杀概率） -->
         <service
             android:name=".FloatWindowService"
+            android:enabled="true"
             android:exported="false"
+            android:configChanges="orientation|screenSize"
             android:foregroundServiceType="mediaProjection" />
 
-        <!-- 录屏画面捕捉服务（前台服务，降低被杀概率） -->
+        <!-- 录屏服务（前台服务，降低被杀概率） -->
         <service
             android:name=".ScreenCaptureService"
-            android:foregroundServiceType="mediaProjection"
-            android:exported="false" />
+            android:enabled="true"
+            android:exported="false"
+            android:configChanges="orientation|screenSize"
+            android:foregroundServiceType="mediaProjection" />
 
     </application>
 
