@@ -37,7 +37,8 @@
             android:exported="false"
             android:excludeFromRecents="true"
             android:launchMode="singleInstance"
-            android:taskAffinity="" />
+            android:taskAffinity=""
+            android:configChanges="orientation|screenSize" />
 
         <!-- 悬浮窗服务（前台服务，降低被杀概率） -->
         <service
