@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:background="@android:color/transparent">
 
-    <!-- 横向椭圆菜单 -->
     <LinearLayout
         android:id="@+id/menuBar"
         android:layout_width="wrap_content"
@@ -15,65 +15,17 @@
         android:paddingEnd="12dp"
         android:visibility="gone">
 
-        <TextView
-            android:id="@+id/menuItem1"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="AI"
-            android:textColor="#FFFFFF"
-            android:textSize="11sp"
-            android:textStyle="bold" />
-
-        <View
-            android:layout_width="1dp"
-            android:layout_height="16dp"
-            android:background="#30FFFFFF"
-            android:layout_marginHorizontal="8dp" />
-
-        <TextView
-            android:id="@+id/menuItem2"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="参数"
-            android:textColor="#FFFFFF"
-            android:textSize="11sp"
-            android:textStyle="bold" />
-
-        <View
-            android:layout_width="1dp"
-            android:layout_height="16dp"
-            android:background="#30FFFFFF"
-            android:layout_marginHorizontal="8dp" />
-
-        <TextView
-            android:id="@+id/menuItem3"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="桌布"
-            android:textColor="#FFFFFF"
-            android:textSize="11sp"
-            android:textStyle="bold" />
+        <TextView android:id="@+id/menuItem1" style="@style/MenuItemStyle" android:text="AI" />
+        <View android:layout_width="1dp" android:layout_height="16dp" android:background="#30FFFFFF" android:layout_marginHorizontal="8dp" />
+        <TextView android:id="@+id/menuItem2" style="@style/MenuItemStyle" android:text="参数" />
+        <View android:layout_width="1dp" android:layout_height="16dp" android:background="#30FFFFFF" android:layout_marginHorizontal="8dp" />
+        <TextView android:id="@+id/menuItem3" style="@style/MenuItemStyle" android:text="桌布" />
     </LinearLayout>
 
-    <!-- 主悬浮按钮 -->
     <FrameLayout
         android:id="@+id/floatMainBtn"
         android:layout_width="56dp"
         android:layout_height="56dp"
-        android:background="@drawable/float_btn_bg">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:text="+"
-            android:textColor="#FFFFFF"
-            android:textSize="28sp" />
-    </FrameLayout>
+        android:background="@drawable/float_btn_bg"
+        android:elevation="8dp" />
 </FrameLayout>
