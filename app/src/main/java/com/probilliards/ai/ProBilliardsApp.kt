@@ -1,4 +1,3 @@
-// File: app/src/main/java/com/probilliards/ai/ProBilliardsApp.kt
 package com.probilliards.ai
 
 import android.app.Application
@@ -18,12 +17,10 @@ class ProBilliardsApp : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
-        // 不在Application.onCreate中初始化OpenCV，避免启动闪退
     }
     
     fun initOpenCV(): Boolean {
         if (isOpenCVInitialized) return true
-        
         return try {
             val result = org.opencv.android.OpenCVLoader.initLocal()
             isOpenCVInitialized = result
