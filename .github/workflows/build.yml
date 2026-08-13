@@ -29,6 +29,23 @@ jobs:
       with:
         gradle-version: '8.2'
     
+    - name: Download OpenCV Android SDK
+      run: |
+        echo "=== 下载 OpenCV ==="
+        wget -q https://github.com/opencv/opencv/releases/download/4.9.0/opencv-4.9.0-android-sdk.zip
+        echo "=== 解压 ==="
+        unzip -q opencv-4.9.0-android-sdk.zip
+        echo "=== 创建目录 ==="
+        mkdir -p app/libs
+        mkdir -p app/src/main/jniLibs
+        echo "=== 复制 jar ==="
+        cp OpenCV-android-sdk/sdk/java/opencv-java4.jar app/libs/
+        echo "=== 复制 native 库 ==="
+        cp -r OpenCV-android-sdk/sdk/native/libs/* app/src/main/jniLibs/
+        echo "=== 验证 ==="
+        ls -la app/libs/
+        ls -la app/src/main/jniLibs/
+    
     - name: Build Debug APK
       run: gradle assembleDebug --no-daemon --stacktrace
     
