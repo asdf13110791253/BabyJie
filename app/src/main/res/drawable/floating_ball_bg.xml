@@ -1,27 +1,86 @@
-
 <?xml version="1.0" encoding="utf-8"?>
 <!-- File: app/src/main/res/drawable/floating_ball_bg.xml -->
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="oval">
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     
-    <!-- 球体主体颜色（金色） -->
-    <solid android:color="#FFC107" />
+    <!-- 外层光晕 -->
+    <item>
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="35dp"
+                android:startColor="@color/floating_ball_glow"
+                android:centerColor="@color/floating_ball_glow"
+                android:endColor="@color/transparent" />
+            <size
+                android:width="70dp"
+                android:height="70dp" />
+        </shape>
+    </item>
+    
+    <!-- 阴影层 -->
+    <item
+        android:top="3dp"
+        android:bottom="0dp"
+        android:left="0dp"
+        android:right="3dp">
+        <shape android:shape="oval">
+            <solid android:color="@color/floating_ball_shadow" />
+            <size
+                android:width="60dp"
+                android:height="60dp" />
+        </shape>
+    </item>
+    
+    <!-- 主体渐变 -->
+    <item
+        android:top="0dp"
+        android:bottom="3dp"
+        android:left="3dp"
+        android:right="0dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="30dp"
+                android:startColor="@color/floating_ball_start"
+                android:centerColor="@color/floating_ball_center"
+                android:endColor="@color/floating_ball_end"
+                android:centerX="0.35"
+                android:centerY="0.35" />
+            <size
+                android:width="60dp"
+                android:height="60dp" />
+        </shape>
+    </item>
     
     <!-- 边框 -->
-    <stroke
-        android:width="3dp"
-        android:color="#FFFFFF" />
+    <item
+        android:top="0dp"
+        android:bottom="3dp"
+        android:left="3dp"
+        android:right="0dp">
+        <shape android:shape="oval">
+            <stroke
+                android:width="2dp"
+                android:color="@color/floating_ball_border" />
+            <size
+                android:width="60dp"
+                android:height="60dp" />
+        </shape>
+    </item>
     
-    <!-- 内边距 -->
-    <padding
-        android:left="2dp"
-        android:top="2dp"
-        android:right="2dp"
-        android:bottom="2dp" />
+    <!-- 高光 -->
+    <item
+        android:top="10dp"
+        android:bottom="25dp"
+        android:left="12dp"
+        android:right="30dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="15dp"
+                android:startColor="@color/floating_ball_highlight"
+                android:endColor="@color/transparent" />
+        </shape>
+    </item>
     
-    <!-- 尺寸 -->
-    <size
-        android:width="60dp"
-        android:height="60dp" />
-    
-</shape>
+</layer-list>
