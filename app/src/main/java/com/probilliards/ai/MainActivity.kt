@@ -1,4 +1,3 @@
-// File: app/src/main/java/com/probilliards/ai/MainActivity.kt
 package com.probilliards.ai
 
 import android.Manifest
@@ -37,7 +36,7 @@ class MainActivity : AppCompatActivity() {
     
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { granted ->
+    ) { _ ->
         checkOverlayPermission()
     }
     
@@ -46,10 +45,8 @@ class MainActivity : AppCompatActivity() {
         try {
             binding = ActivityMainBinding.inflate(layoutInflater)
             setContentView(binding.root)
-            
             mediaProjectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) 
                 as MediaProjectionManager
-            
             setupClickListeners()
         } catch (e: Exception) {
             Toast.makeText(this, "启动失败: ${e.message}", Toast.LENGTH_LONG).show()
@@ -58,13 +55,8 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun setupClickListeners() {
-        binding.btnStartAssistant.setOnClickListener {
-            checkPermissionsAndStart()
-        }
-        
-        binding.btnStopAssistant.setOnClickListener {
-            stopAssistant()
-        }
+        binding.btnStartAssistant.setOnClickListener { checkPermissionsAndStart() }
+        binding.btnStopAssistant.setOnClickListener { stopAssistant() }
     }
     
     private fun checkPermissionsAndStart() {
@@ -113,13 +105,11 @@ class MainActivity : AppCompatActivity() {
                 putExtra("resultCode", resultCode)
                 putExtra("resultData", data)
             }
-            
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 startForegroundService(intent)
             } else {
                 startService(intent)
             }
-            
             startFloatingWindowService()
             Toast.makeText(this, "ProBilliards AI 已启动", Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
