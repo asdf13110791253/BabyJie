@@ -16,10 +16,6 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0.0"
-
-        ndk {
-            abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
-        }
     }
 
     buildTypes {
@@ -41,12 +37,6 @@ android {
         viewBinding = true
         dataBinding = true
     }
-    
-    sourceSets {
-        getByName("main") {
-            jniLibs.srcDirs("src/main/jniLibs")
-        }
-    }
 }
 
 dependencies {
@@ -64,8 +54,8 @@ dependencies {
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     
-    // OpenCV - 使用本地jar
-    implementation(files("libs/opencv-java4.jar"))
+    // OpenCV - 使用 JitPack 自动下载
+    implementation("com.quickbirdstudios:opencv:4.5.3.0")
     
     // CardView
     implementation("androidx.cardview:cardview:1.0.0")
