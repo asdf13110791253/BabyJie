@@ -4,22 +4,11 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <!-- 权限声明 -->
-    <!-- 悬浮窗权限 -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-    
-    <!-- 前台服务权限 -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    
-    <!-- Android 14+ 媒体投影前台服务类型 -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
-    
-    <!-- Android 14+ 特殊用途前台服务类型 -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
-    
-    <!-- 通知权限（Android 13+） -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    
-    <!-- 保持屏幕唤醒 -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
@@ -31,6 +20,7 @@
         android:theme="@style/Theme.ProBilliards"
         tools:targetApi="34">
 
+        <!-- 主Activity -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -41,6 +31,20 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- 设置Activity -->
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ProBilliards"
+            android:screenOrientation="portrait" />
+
+        <!-- 校准引导Activity -->
+        <activity
+            android:name=".CalibrationGuideActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ProBilliards"
+            android:screenOrientation="portrait" />
 
         <!-- 屏幕采集服务 -->
         <service
