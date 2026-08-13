@@ -12,17 +12,24 @@ import android.os.Looper
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
+import android.view.animation.AlphaAnimation
+import android.view.animation.Animation
+import android.view.animation.ScaleAnimation
 import androidx.core.app.NotificationCompat
 import com.probilliards.ai.R
+import com.probilliards.ai.SettingsActivity
+import com.probilliards.ai.ai.AIMode
 import com.probilliards.ai.overlay.ControlPanelView
 import com.probilliards.ai.overlay.FloatingBallView
 import com.probilliards.ai.overlay.GuideLineView
 import com.probilliards.ai.overlay.SelectionRectView
+import com.probilliards.ai.vision.*
 import kotlinx.coroutines.*
+import org.opencv.core.MatOfPoint2f
 
 /**
- * 悬浮窗服务
- * 管理所有悬浮窗视图
+ * 悬浮窗服务（优化版）
+ * 集成卡尔曼滤波、霍夫变换、ROI处理
  */
 class FloatingWindowService : Service() {
     
@@ -48,25 +55,74 @@ class FloatingWindowService : Service() {
     private val handler = Handler(Looper.getMainLooper())
     private var frameProcessingJob: Job? = null
     
+    // 视觉检测器
+    private lateinit var tableDetector: TableDetector
+    private lateinit var ballDetector: BallDetector
+    private lateinit var pocketDetector: PocketDetector
+    private lateinit var houghLineDetector: HoughLineDetector
+    private lateinit var tableCalibrator: TableCalibrator
+    
+    // 卡尔曼滤波器追踪器
+    private val ballTrackers = mutableMapOf<Int, KalmanFilterTracker>()
+    
+    // ROI区域
+    private var roiRect: android.graphics.Rect? = null
+    
     override fun onCreate() {
         super.onCreate()
         instance = this
         isRunning = true
         windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        createNotificationChannel()
         
+        // 初始化检测器
+        initDetectors()
+        
+        createNotificationChannel()
         initOverlayViews()
         startFrameProcessing()
+    }
+    
+    /**
+     * 初始化检测器
+     */
+    private fun initDetectors() {
+        tableDetector = TableDetector()
+        ballDetector = BallDetector()
+        pocketDetector = PocketDetector()
+        houghLineDetector = HoughLineDetector()
+        tableCalibrator = TableCalibrator(this)
+        
+        // 加载ROI设置
+        loadROISettings()
+    }
+    
+    /**
+     * 加载ROI设置
+     */
+    private fun loadROISettings() {
+        val prefs = getSharedPreferences("probilliards_prefs", Context.MODE_PRIVATE)
+        val left = prefs.getInt("selection_left", -1)
+        val top = prefs.getInt("selection_top", -1)
+        val right = prefs.getInt("selection_right", -1)
+        val bottom = prefs.getInt("selection_bottom", -1)
+        
+        if (left >= 0 && top >= 0 && right > left && bottom > top) {
+            roiRect = android.graphics.Rect(left, top, right, bottom)
+        }
     }
     
     /**
      * 初始化所有悬浮窗视图
      */
     private fun initOverlayViews() {
-        // 初始化悬浮球
+        // 初始化悬浮球（支持长按拖动）
         floatingBallView = FloatingBallView(this).apply {
             onBallClick = { toggleControlPanel() }
             onBallDrag = { x, y -> updateFloatingBallPosition(x, y) }
+            onBallLongPress = { 
+                // 长按进入快速拖动模式
+                Toast.makeText(this@FloatingWindowService, "快速拖动模式", Toast.LENGTH_SHORT).show()
+            }
         }
         floatingBallParams = WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
@@ -87,7 +143,7 @@ class FloatingWindowService : Service() {
                 handleFeatureToggle(feature, enabled)
             }
             onAdjustAreaClick = { showSelectionRect() }
-            onOpenSettingsClick = { /* 打开设置页 */ }
+            onOpenSettingsClick = { openSettings() }
             onCloseClick = { stopSelf() }
         }
         controlPanelParams = WindowManager.LayoutParams(
@@ -119,6 +175,9 @@ class FloatingWindowService : Service() {
         selectionRectView = SelectionRectView(this).apply {
             onRectChanged = { rect ->
                 saveSelectionRect(rect)
+                roiRect = rect
+                // 更新屏幕采集服务的ROI
+                ScreenCaptureService.instance?.updateROI(rect)
             }
             onConfirmClick = { hideSelectionRect() }
             onCancelClick = { hideSelectionRect() }
@@ -144,16 +203,47 @@ class FloatingWindowService : Service() {
     }
     
     /**
-     * 切换控制面板显示
+     * 切换控制面板（带动画）
      */
     private fun toggleControlPanel() {
         if (controlPanelView.visibility == View.VISIBLE) {
-            controlPanelView.visibility = View.GONE
+            // 缩小动画
+            val scaleDown = ScaleAnimation(
+                1f, 0.8f, 1f, 0.8f,
+                Animation.RELATIVE_TO_SELF, 0.5f,
+                Animation.RELATIVE_TO_SELF, 0f
+            ).apply {
+                duration = 150
+                setAnimationListener(object : Animation.AnimationListener {
+                    override fun onAnimationStart(animation: Animation?) {}
+                    override fun onAnimationEnd(animation: Animation?) {
+                        controlPanelView.visibility = View.GONE
+                    }
+                    override fun onAnimationRepeat(animation: Animation?) {}
+                })
+            }
+            controlPanelView.startAnimation(scaleDown)
         } else {
             controlPanelView.visibility = View.VISIBLE
             controlPanelParams.x = floatingBallParams.x
             controlPanelParams.y = floatingBallParams.y + 100
             windowManager.updateViewLayout(controlPanelView, controlPanelParams)
+            
+            // 放大动画
+            val scaleUp = ScaleAnimation(
+                0.8f, 1f, 0.8f, 1f,
+                Animation.RELATIVE_TO_SELF, 0.5f,
+                Animation.RELATIVE_TO_SELF, 0f
+            ).apply {
+                duration = 150
+            }
+            controlPanelView.startAnimation(scaleUp)
+            
+            // 淡入动画
+            val fadeIn = AlphaAnimation(0f, 1f).apply {
+                duration = 200
+            }
+            controlPanelView.startAnimation(fadeIn)
         }
     }
     
@@ -202,6 +292,15 @@ class FloatingWindowService : Service() {
     }
     
     /**
+     * 打开设置页
+     */
+    private fun openSettings() {
+        val intent = Intent(this, SettingsActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        startActivity(intent)
+    }
+    
+    /**
      * 处理功能开关
      */
     private fun handleFeatureToggle(feature: String, enabled: Boolean) {
@@ -223,11 +322,107 @@ class FloatingWindowService : Service() {
     }
     
     /**
-     * 处理帧
+     * 处理帧（集成视觉检测）
      */
     private suspend fun processFrame(bitmap: android.graphics.Bitmap) {
-        withContext(Dispatchers.Main) {
-            guideLineView.updateFrame(bitmap)
+        withContext(Dispatchers.Default) {
+            try {
+                // 应用校准
+                val calibration = tableCalibrator.getCalibration()
+                val calibratedBitmap = tableCalibrator.applyCalibration(bitmap, calibration)
+                
+                // 使用ROI处理
+                val openCvROI = roiRect?.let {
+                    org.opencv.core.Rect(it.left, it.top, it.width(), it.height())
+                }
+                
+                // 检测球桌
+                val tableCorners = tableDetector.detectTable(calibratedBitmap, openCvROI)
+                
+                // 使用霍夫变换辅助检测
+                if (tableCorners == null) {
+                    val lines = houghLineDetector.detectLines(calibratedBitmap, openCvROI)
+                    val boundaries = houghLineDetector.findTableBoundaries(lines)
+                    // 从边界线计算球桌顶点
+                }
+                
+                // 检测球
+                val detectedBalls = ballDetector.detectBalls(calibratedBitmap)
+                
+                // 应用卡尔曼滤波平滑
+                val smoothedBalls = smoothBallPositions(detectedBalls)
+                
+                // 检测袋口
+                val pockets = if (tableCorners != null) {
+                    pocketDetector.detectPockets(tableCorners).map { it.position }
+                } else {
+                    pocketDetector.estimatePockets(
+                        calibratedBitmap.width,
+                        calibratedBitmap.height,
+                        roiRect
+                    ).map { it.position }
+                }
+                
+                // 更新辅助线
+                withContext(Dispatchers.Main) {
+                    updateGuideLines(smoothedBalls, pockets)
+                }
+            } catch (e: Exception) {
+                // 处理异常
+            }
+        }
+    }
+    
+    /**
+     * 使用卡尔曼滤波平滑球的位置
+     */
+    private fun smoothBallPositions(balls: List<Ball>): List<Ball> {
+        return balls.map { ball ->
+            val tracker = ballTrackers.getOrPut(ball.hashCode()) {
+                KalmanFilterTracker()
+            }
+            val smoothedPosition = tracker.update(ball.position)
+            ball.copy(position = smoothedPosition)
+        }
+    }
+    
+    /**
+     * 更新辅助线
+     */
+    private fun updateGuideLines(balls: List<Ball>, pockets: List<android.graphics.PointF>) {
+        val whiteBall = balls.find { it.isWhite }
+        
+        if (whiteBall != null) {
+            guideLineView.updateBallPositions(
+                white = whiteBall.position,
+                target = balls.firstOrNull { !it.isWhite }?.position,
+                pocket = pockets.firstOrNull()
+            )
+            
+            // 计算AI推荐
+            val aiMode = getAIMode()
+            val shotRecommender = com.probilliards.ai.ai.ShotRecommender()
+            val recommendation = shotRecommender.recommendShot(
+                whiteBall,
+                balls.filter { !it.isWhite },
+                pockets,
+                aiMode
+            )
+            
+            guideLineView.updateAIRecommendation(recommendation)
+        }
+    }
+    
+    /**
+     * 获取AI模式
+     */
+    private fun getAIMode(): AIMode {
+        val prefs = getSharedPreferences("probilliards_settings", Context.MODE_PRIVATE)
+        return when (prefs.getInt("ai_mode", 0)) {
+            0 -> AIMode.BALANCED
+            1 -> AIMode.OFFENSIVE
+            2 -> AIMode.DEFENSIVE
+            else -> AIMode.BALANCED
         }
     }
     
