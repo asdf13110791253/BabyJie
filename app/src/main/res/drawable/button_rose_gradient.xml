@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- File: app/src/main/res/drawable/button_rose_gradient.xml -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    
+    <gradient
+        android:type="linear"
+        android:angle="45"
+        android:startColor="@color/button_rose_start"
+        android:centerColor="@color/rose_pink"
+        android:endColor="@color/button_rose_end" />
+    
+    <corners android:radius="12dp" />
+    
+    <padding
+        android:left="16dp"
+        android:top="12dp"
+        android:right="16dp"
+        android:bottom="12dp" />
+    
+</shape>
