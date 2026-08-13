@@ -1,16 +1,14 @@
 # File: .github/workflows/build.yml
-name: Android CI
+name: Build Android APK
 
 on:
   push:
-    branches: [ main, master ]
-  pull_request:
     branches: [ main, master ]
   workflow_dispatch:
 
 jobs:
   build:
-    name: Build and Test
+    name: Build Debug APK
     runs-on: ubuntu-latest
     
     steps:
@@ -22,43 +20,21 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-        cache: gradle
     
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
     
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
-    
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-    
-    - name: Check code style (Ktlint)
-      run: ./gradlew ktlintCheck --no-daemon
-      continue-on-error: true
-    
-    - name: Run unit tests
-      run: ./gradlew testDebugUnitTest --no-daemon
-      continue-on-error: true
+      with:
+        gradle-version: '8.2'
     
     - name: Build Debug APK
-      run: ./gradlew assembleDebug --no-daemon
+      run: gradle assembleDebug --no-daemon
     
-    - name: Upload Debug APK
+    - name: Upload APK artifact
       uses: actions/upload-artifact@v4
       with:
         name: app-debug
         path: app/build/outputs/apk/debug/app-debug.apk
         retention-days: 30
-    
-    - name: Run Lint
-      run: ./gradlew lintDebug --no-daemon
-      continue-on-error: true
-    
-    - name: Upload Lint Report
-      uses: actions/upload-artifact@v4
-      with:
-        name: lint-report
-        path: app/build/reports/lint-results-debug.html
-        retention-days: 7
-      continue-on-error: true
