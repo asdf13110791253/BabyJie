@@ -1,1 +1,27 @@
 
+<?xml version="1.0" encoding="utf-8"?>
+<!-- File: app/src/main/res/drawable/floating_ball_bg.xml -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    
+    <!-- 球体主体颜色（金色） -->
+    <solid android:color="#FFC107" />
+    
+    <!-- 边框 -->
+    <stroke
+        android:width="3dp"
+        android:color="#FFFFFF" />
+    
+    <!-- 内边距 -->
+    <padding
+        android:left="2dp"
+        android:top="2dp"
+        android:right="2dp"
+        android:bottom="2dp" />
+    
+    <!-- 尺寸 -->
+    <size
+        android:width="60dp"
+        android:height="60dp" />
+    
+</shape>
