@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- File: app/src/main/res/drawable/button_rose_selector.xml -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true" android:drawable="@drawable/button_rose_pressed" />
+    <item android:state_enabled="false" android:drawable="@drawable/button_disabled" />
+    <item android:drawable="@drawable/button_rose_gradient" />
+</selector>
