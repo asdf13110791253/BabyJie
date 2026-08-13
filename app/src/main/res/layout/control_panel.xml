@@ -5,17 +5,40 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="@android:color/transparent">
+    android:background="@android:color/transparent"
+    android:minWidth="220dp">
     
-    <!-- 标题 -->
-    <TextView
-        android:layout_width="wrap_content"
+    <!-- 标题栏 -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/app_name"
-        android:textColor="@android:color/white"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="12dp" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="12dp">
+        
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/app_name"
+            android:textColor="@color/gold"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+        
+        <!-- 快速关闭按钮 -->
+        <Button
+            android:id="@+id/btnQuickClose"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:text="✕"
+            android:textSize="14sp"
+            android:backgroundTint="@android:color/transparent"
+            android:textColor="@android:color/white"
+            android:padding="0dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp" />
+        
+    </LinearLayout>
     
     <!-- 主瞄准线开关 -->
     <Switch
@@ -23,7 +46,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/main_line"
-        android:textColor="@android:color/white" />
+        android:textColor="@android:color/white"
+        android:paddingVertical="4dp" />
     
     <!-- 目标球延伸线开关 -->
     <Switch
@@ -31,7 +55,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/target_line"
-        android:textColor="@android:color/white" />
+        android:textColor="@android:color/white"
+        android:paddingVertical="4dp" />
     
     <!-- 库边反弹线开关 -->
     <Switch
@@ -39,7 +64,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/rebound_line"
-        android:textColor="@android:color/white" />
+        android:textColor="@android:color/white"
+        android:paddingVertical="4dp" />
     
     <!-- 力度条开关 -->
     <Switch
@@ -47,7 +73,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/power_bar"
-        android:textColor="@android:color/white" />
+        android:textColor="@android:color/white"
+        android:paddingVertical="4dp" />
     
     <!-- AI推荐路线开关 -->
     <Switch
@@ -55,7 +82,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/ai_recommend"
-        android:textColor="@android:color/white" />
+        android:textColor="@android:color/white"
+        android:paddingVertical="4dp" />
     
     <!-- 分隔线 -->
     <View
@@ -71,24 +99,24 @@
         android:layout_height="wrap_content"
         android:text="@string/adjust_area"
         android:backgroundTint="@color/gold"
-        android:textColor="@android:color/black" />
+        android:textColor="@android:color/black"
+        android:layout_marginBottom="8dp" />
     
     <!-- 打开设置页按钮 -->
     <Button
         android:id="@+id/btnOpenSettings"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
         android:text="@string/open_settings"
-        android:backgroundTint="@color/gold"
-        android:textColor="@android:color/black" />
+        android:backgroundTint="@color/blue"
+        android:textColor="@android:color/white"
+        android:layout_marginBottom="8dp" />
     
     <!-- 关闭悬浮窗按钮 -->
     <Button
         android:id="@+id/btnClose"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
         android:text="@string/close_overlay"
         android:backgroundTint="@color/red"
         android:textColor="@android:color/white" />
