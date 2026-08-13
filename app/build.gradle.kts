@@ -25,10 +25,6 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
         }
     }
     
@@ -46,9 +42,9 @@ android {
         dataBinding = true
     }
     
-    packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+    sourceSets {
+        getByName("main") {
+            jniLibs.srcDirs("src/main/jniLibs")
         }
     }
 }
@@ -60,7 +56,6 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     
     // Hilt
     implementation("com.google.dagger:hilt-android:2.48")
@@ -69,8 +64,8 @@ dependencies {
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     
-    // OpenCV - 使用 JitPack
-    implementation("com.github.opencv:opencv:4.9.0")
+    // OpenCV - 使用本地jar
+    implementation(files("libs/opencv-java4.jar"))
     
     // CardView
     implementation("androidx.cardview:cardview:1.0.0")
