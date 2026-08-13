@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- File: app/src/main/res/layout/activity_calibration_guide.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@color/dark_background"
+    android:gravity="center">
+    
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="球桌校准引导"
+        android:textColor="@color/gold"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="30dp" />
+    
+    <!-- 步骤1 -->
+    <TextView
+        android:id="@+id/tvStep1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="步骤1：将手机对准球桌，确保球桌完整出现在屏幕中"
+        android:textColor="@android:color/white"
+        android:textSize="16sp"
+        android:layout_marginBottom="16dp" />
+    
+    <!-- 步骤2 -->
+    <TextView
+        android:id="@+id/tvStep2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="步骤2：调整识别区域，框选球桌范围"
+        android:textColor="@android:color/white"
+        android:textSize="16sp"
+        android:layout_marginBottom="16dp" />
+    
+    <!-- 步骤3 -->
+    <TextView
+        android:id="@+id/tvStep3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="步骤3：点击自动校准，系统将自动检测球桌颜色"
+        android:textColor="@android:color/white"
+        android:textSize="16sp"
+        android:layout_marginBottom="30dp" />
+    
+    <!-- 自动校准按钮 -->
+    <Button
+        android:id="@+id/btnAutoCalibrate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="自动校准"
+        android:backgroundTint="@color/gold"
+        android:textColor="@android:color/black"
+        android:layout_marginBottom="12dp" />
+    
+    <!-- 下一步按钮 -->
+    <Button
+        android:id="@+id/btnNext"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="下一步"
+        android:backgroundTint="@color/blue"
+        android:textColor="@android:color/white"
+        android:layout_marginBottom="8dp" />
+    
+    <!-- 跳过按钮 -->
+    <Button
+        android:id="@+id/btnSkip"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="跳过"
+        android:backgroundTint="@android:color/darker_gray"
+        android:textColor="@android:color/white" />
+    
+</LinearLayout>
