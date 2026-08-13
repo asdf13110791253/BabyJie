@@ -6,27 +6,16 @@ import android.content.Context
 import android.graphics.*
 import android.view.View
 import android.view.animation.LinearInterpolator
+import androidx.core.content.ContextCompat
+import com.probilliards.ai.R
 import com.probilliards.ai.ai.CueAction
 import com.probilliards.ai.ai.ShotRecommendation
 import kotlin.math.*
 
 /**
- * 辅助线视图（优化版）
- * 支持发光效果、圆弧力度条、动画箭头
+ * 辅助线视图（暗夜玫瑰主题版）
  */
 class GuideLineView(context: Context) : View(context) {
-    
-    companion object {
-        // 默认颜色
-        private const val DEFAULT_MAIN_LINE_COLOR = Color.rgb(255, 87, 34)
-        private const val DEFAULT_TARGET_LINE_COLOR = Color.rgb(76, 175, 80)
-        private const val DEFAULT_REBOUND_LINE_COLOR = Color.rgb(63, 81, 181)
-        private const val DEFAULT_AI_LINE_COLOR = Color.rgb(255, 193, 7)
-        
-        // 默认参数
-        private const val DEFAULT_LINE_WIDTH = 3f
-        private const val DEFAULT_LINE_ALPHA = 200
-    }
     
     // 功能开关
     private val featuresEnabled = mutableMapOf(
@@ -37,14 +26,6 @@ class GuideLineView(context: Context) : View(context) {
         "ai_recommend" to false
     )
     
-    // 自定义设置
-    private var mainLineColor = DEFAULT_MAIN_LINE_COLOR
-    private var targetLineColor = DEFAULT_TARGET_LINE_COLOR
-    private var reboundLineColor = DEFAULT_REBOUND_LINE_COLOR
-    private var aiLineColor = DEFAULT_AI_LINE_COLOR
-    private var lineWidth = DEFAULT_LINE_WIDTH
-    private var lineAlpha = DEFAULT_LINE_ALPHA
-    
     // 球的位置
     private var whiteBallPosition: PointF? = null
     private var targetBallPosition: PointF? = null
@@ -54,78 +35,77 @@ class GuideLineView(context: Context) : View(context) {
     // 动画
     private var arrowAnimator: ValueAnimator? = null
     private var arrowProgress = 0f
-    private var powerBarAnimator: ValueAnimator? = null
-    private var powerBarProgress = 0f
     
-    // 画笔
+    // 画笔 - 使用暗夜玫瑰主题颜色
     private val mainLinePaint = Paint().apply {
-        color = DEFAULT_MAIN_LINE_COLOR
-        strokeWidth = DEFAULT_LINE_WIDTH
+        color = ContextCompat.getColor(context, R.color.guide_main_line)
+        strokeWidth = 3f
         isAntiAlias = true
         style = Paint.Style.STROKE
-        alpha = DEFAULT_LINE_ALPHA
+        alpha = 220
     }
     
     private val mainLineGlowPaint = Paint().apply {
-        color = DEFAULT_MAIN_LINE_COLOR
-        strokeWidth = DEFAULT_LINE_WIDTH * 3
+        color = ContextCompat.getColor(context, R.color.guide_main_line)
+        strokeWidth = 9f
         isAntiAlias = true
         style = Paint.Style.STROKE
-        alpha = 50
-        maskFilter = BlurMaskFilter(10f, BlurMaskFilter.Blur.NORMAL)
+        alpha = 60
+        maskFilter = BlurMaskFilter(12f, BlurMaskFilter.Blur.NORMAL)
     }
     
     private val targetLinePaint = Paint().apply {
-        color = DEFAULT_TARGET_LINE_COLOR
-        strokeWidth = DEFAULT_LINE_WIDTH
+        color = ContextCompat.getColor(context, R.color.guide_target_line)
+        strokeWidth = 2f
         isAntiAlias = true
         style = Paint.Style.STROKE
-        alpha = DEFAULT_LINE_ALPHA
+        alpha = 180
         pathEffect = DashPathEffect(floatArrayOf(10f, 10f), 0f)
     }
     
     private val reboundLinePaint = Paint().apply {
-        color = DEFAULT_REBOUND_LINE_COLOR
-        strokeWidth = DEFAULT_LINE_WIDTH
+        color = ContextCompat.getColor(context, R.color.guide_rebound_line)
+        strokeWidth = 2f
         isAntiAlias = true
         style = Paint.Style.STROKE
-        alpha = DEFAULT_LINE_ALPHA
+        alpha = 180
         pathEffect = DashPathEffect(floatArrayOf(15f, 8f), 0f)
     }
     
+    // AI推荐线 - 金色
     private val aiLinePaint = Paint().apply {
-        color = DEFAULT_AI_LINE_COLOR
-        strokeWidth = DEFAULT_LINE_WIDTH + 1
+        color = ContextCompat.getColor(context, R.color.guide_ai_line)
+        strokeWidth = 4f
         isAntiAlias = true
         style = Paint.Style.STROKE
         alpha = 255
     }
     
     private val aiLineGlowPaint = Paint().apply {
-        color = DEFAULT_AI_LINE_COLOR
-        strokeWidth = (DEFAULT_LINE_WIDTH + 1) * 3
+        color = ContextCompat.getColor(context, R.color.guide_ai_glow)
+        strokeWidth = 12f
         isAntiAlias = true
         style = Paint.Style.STROKE
-        alpha = 80
-        maskFilter = BlurMaskFilter(15f, BlurMaskFilter.Blur.NORMAL)
+        alpha = 100
+        maskFilter = BlurMaskFilter(18f, BlurMaskFilter.Blur.NORMAL)
     }
     
     private val arrowPaint = Paint().apply {
-        color = Color.WHITE
+        color = ContextCompat.getColor(context, R.color.guide_arrow)
         isAntiAlias = true
         style = Paint.Style.FILL
-        alpha = 200
+        alpha = 220
     }
     
     private val powerBarBackgroundPaint = Paint().apply {
-        color = Color.argb(100, 128, 128, 128)
+        color = ContextCompat.getColor(context, R.color.dark_background_tertiary)
         isAntiAlias = true
         style = Paint.Style.STROKE
         strokeWidth = 15f
     }
     
     private val powerBarPaint = Paint().apply {
-        color = DEFAULT_MAIN_LINE_COLOR
+        color = ContextCompat.getColor(context, R.color.guide_power_bar)
         isAntiAlias = true
         style = Paint.Style.STROKE
         strokeWidth = 15f
@@ -133,7 +113,7 @@ class GuideLineView(context: Context) : View(context) {
     }
     
     private val textPaint = Paint().apply {
-        color = Color.WHITE
+        color = ContextCompat.getColor(context, R.color.text_primary)
         textAlign = Paint.Align.CENTER
         textSize = 28f
         isAntiAlias = true
@@ -141,7 +121,7 @@ class GuideLineView(context: Context) : View(context) {
     }
     
     private val infoTextPaint = Paint().apply {
-        color = Color.WHITE
+        color = ContextCompat.getColor(context, R.color.text_primary)
         textAlign = Paint.Align.LEFT
         textSize = 24f
         isAntiAlias = true
@@ -151,79 +131,9 @@ class GuideLineView(context: Context) : View(context) {
     init {
         setWillNotDraw(false)
         setLayerType(LAYER_TYPE_SOFTWARE, null)
-        loadCustomSettings()
         startArrowAnimation()
     }
     
-    /**
-     * 加载自定义设置
-     */
-    private fun loadCustomSettings() {
-        val prefs = context.getSharedPreferences("probilliards_settings", Context.MODE_PRIVATE)
-        mainLineColor = prefs.getInt("main_line_color", DEFAULT_MAIN_LINE_COLOR)
-        targetLineColor = prefs.getInt("target_line_color", DEFAULT_TARGET_LINE_COLOR)
-        reboundLineColor = prefs.getInt("rebound_line_color", DEFAULT_REBOUND_LINE_COLOR)
-        aiLineColor = prefs.getInt("ai_line_color", DEFAULT_AI_LINE_COLOR)
-        lineWidth = prefs.getFloat("line_width", DEFAULT_LINE_WIDTH)
-        lineAlpha = prefs.getInt("line_alpha", DEFAULT_LINE_ALPHA)
-        
-        updatePaintColors()
-    }
-    
-    /**
-     * 更新画笔颜色
-     */
-    private fun updatePaintColors() {
-        mainLinePaint.color = mainLineColor
-        mainLinePaint.strokeWidth = lineWidth
-        mainLinePaint.alpha = lineAlpha
-        
-        mainLineGlowPaint.color = mainLineColor
-        mainLineGlowPaint.strokeWidth = lineWidth * 3
-        mainLineGlowPaint.alpha = lineAlpha / 4
-        
-        targetLinePaint.color = targetLineColor
-        targetLinePaint.strokeWidth = lineWidth
-        targetLinePaint.alpha = lineAlpha
-        
-        reboundLinePaint.color = reboundLineColor
-        reboundLinePaint.strokeWidth = lineWidth
-        reboundLinePaint.alpha = lineAlpha
-        
-        aiLinePaint.color = aiLineColor
-        aiLinePaint.strokeWidth = lineWidth + 1
-        
-        aiLineGlowPaint.color = aiLineColor
-        aiLineGlowPaint.strokeWidth = (lineWidth + 1) * 3
-        
-        powerBarPaint.color = mainLineColor
-    }
-    
-    /**
-     * 更新自定义设置
-     */
-    fun updateCustomSettings(
-        mainColor: Int? = null,
-        targetColor: Int? = null,
-        reboundColor: Int? = null,
-        aiColor: Int? = null,
-        width: Float? = null,
-        alpha: Int? = null
-    ) {
-        mainColor?.let { mainLineColor = it }
-        targetColor?.let { targetLineColor = it }
-        reboundColor?.let { reboundLineColor = it }
-        aiColor?.let { aiLineColor = it }
-        width?.let { lineWidth = it }
-        alpha?.let { lineAlpha = it }
-        
-        updatePaintColors()
-        invalidate()
-    }
-    
-    /**
-     * 启动箭头动画
-     */
     private fun startArrowAnimation() {
         arrowAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
             duration = 1000
@@ -231,17 +141,6 @@ class GuideLineView(context: Context) : View(context) {
             interpolator = LinearInterpolator()
             addUpdateListener { animator ->
                 arrowProgress = animator.animatedValue as Float
-                invalidate()
-            }
-            start()
-        }
-        
-        powerBarAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
-            duration = 2000
-            repeatCount = ValueAnimator.INFINITE
-            interpolator = LinearInterpolator()
-            addUpdateListener { animator ->
-                powerBarProgress = animator.animatedValue as Float
                 invalidate()
             }
             start()
@@ -272,42 +171,33 @@ class GuideLineView(context: Context) : View(context) {
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         
-        // 绘制主瞄准线（带发光效果）
         if (featuresEnabled["main_line"] == true && 
             whiteBallPosition != null && targetBallPosition != null) {
             drawMainLine(canvas)
         }
         
-        // 绘制目标球延伸线
         if (featuresEnabled["target_line"] == true && 
             targetBallPosition != null && pocketPosition != null) {
             drawTargetLine(canvas)
         }
         
-        // 绘制反弹线
         if (featuresEnabled["rebound_line"] == true) {
             drawReboundLine(canvas)
         }
         
-        // 绘制AI推荐路线（带发光效果）
         if (featuresEnabled["ai_recommend"] == true && aiRecommendation != null) {
             drawAIRecommendPath(canvas)
         }
         
-        // 绘制力度条（圆弧形）
         if (featuresEnabled["power_bar"] == true && whiteBallPosition != null) {
             drawArcPowerBar(canvas)
         }
         
-        // 绘制信息面板
         if (aiRecommendation != null && featuresEnabled["ai_recommend"] == true) {
             drawInfoPanel(canvas)
         }
     }
     
-    /**
-     * 绘制主瞄准线（带发光效果）
-     */
     private fun drawMainLine(canvas: Canvas) {
         val white = whiteBallPosition ?: return
         val target = targetBallPosition ?: return
@@ -325,30 +215,24 @@ class GuideLineView(context: Context) : View(context) {
             val endX = target.x + unitX * 200
             val endY = target.y + unitY * 200
             
-            // 绘制发光效果
+            // 发光效果
             canvas.drawLine(startX, startY, endX, endY, mainLineGlowPaint)
             
-            // 绘制主线
+            // 主线
             canvas.drawLine(startX, startY, endX, endY, mainLinePaint)
             
-            // 绘制动画箭头
+            // 动画箭头
             drawAnimatedArrow(canvas, white, target, unitX, unitY)
         }
     }
     
-    /**
-     * 绘制动画箭头
-     */
     private fun drawAnimatedArrow(canvas: Canvas, start: PointF, end: PointF, unitX: Float, unitY: Float) {
-        val distance = GeometryUtils.distance(start, end)
+        val distance = distance(start, end)
         val arrowPosition = distance * arrowProgress
         val arrowX = start.x + unitX * arrowPosition
         val arrowY = start.y + unitY * arrowPosition
         
-        // 箭头大小
         val arrowSize = 15f
-        
-        // 计算箭头三角形的三个顶点
         val angle = atan2(unitY, unitX)
         val angle1 = angle + PI.toFloat() * 0.75f
         val angle2 = angle - PI.toFloat() * 0.75f
@@ -370,9 +254,6 @@ class GuideLineView(context: Context) : View(context) {
         canvas.drawPath(path, arrowPaint)
     }
     
-    /**
-     * 绘制目标球延伸线
-     */
     private fun drawTargetLine(canvas: Canvas) {
         val target = targetBallPosition ?: return
         val pocket = pocketPosition ?: return
@@ -392,15 +273,11 @@ class GuideLineView(context: Context) : View(context) {
         }
     }
     
-    /**
-     * 绘制反弹线
-     */
     private fun drawReboundLine(canvas: Canvas) {
         val white = whiteBallPosition ?: return
         val target = targetBallPosition ?: return
         
         val screenWidth = width.toFloat()
-        
         val dx = target.x - white.x
         val dy = target.y - white.y
         
@@ -410,18 +287,14 @@ class GuideLineView(context: Context) : View(context) {
         canvas.drawLine(white.x, white.y, reboundX, reboundY, reboundLinePaint)
         canvas.drawLine(reboundX, reboundY, target.x, target.y, reboundLinePaint)
         
-        // 绘制反弹点
         val reboundPaint = Paint().apply {
-            color = Color.WHITE
+            color = ContextCompat.getColor(context, R.color.rose_pink_light)
             isAntiAlias = true
             style = Paint.Style.FILL
         }
         canvas.drawCircle(reboundX, reboundY, 8f, reboundPaint)
     }
     
-    /**
-     * 绘制AI推荐路线（带发光效果）
-     */
     private fun drawAIRecommendPath(canvas: Canvas) {
         val recommendation = aiRecommendation ?: return
         val path = recommendation.path
@@ -435,28 +308,25 @@ class GuideLineView(context: Context) : View(context) {
             pathObj.lineTo(path[i].x, path[i].y)
         }
         
-        // 绘制发光效果
+        // 金色发光效果
         canvas.drawPath(pathObj, aiLineGlowPaint)
         
-        // 绘制主路线
+        // 金色主线
         canvas.drawPath(pathObj, aiLinePaint)
         
-        // 绘制终点标记
+        // 终点标记
         path.lastOrNull()?.let { endPoint ->
             canvas.drawCircle(endPoint.x, endPoint.y, 15f, aiLinePaint)
             canvas.drawCircle(endPoint.x, endPoint.y, 8f, arrowPaint)
         }
     }
     
-    /**
-     * 绘制圆弧力度条
-     */
     private fun drawArcPowerBar(canvas: Canvas) {
         val white = whiteBallPosition ?: return
         val recommendation = aiRecommendation
         
         val centerX = white.x
-        val centerY = white.y - 100 // 在白球上方
+        val centerY = white.y - 100
         val radius = 50f
         
         val rect = RectF(
@@ -466,23 +336,17 @@ class GuideLineView(context: Context) : View(context) {
             centerY + radius
         )
         
-        // 绘制背景弧
         canvas.drawArc(rect, 135f, 270f, false, powerBarBackgroundPaint)
         
-        // 绘制力度弧
         val powerPercentage = recommendation?.power ?: 0.5f
         val sweepAngle = 270f * powerPercentage
         
         canvas.drawArc(rect, 135f, sweepAngle, false, powerBarPaint)
         
-        // 绘制力度百分比文字
         val powerText = "${(powerPercentage * 100).toInt()}%"
         canvas.drawText(powerText, centerX, centerY + 10, textPaint)
     }
     
-    /**
-     * 绘制信息面板
-     */
     private fun drawInfoPanel(canvas: Canvas) {
         val recommendation = aiRecommendation ?: return
         
@@ -491,15 +355,13 @@ class GuideLineView(context: Context) : View(context) {
         val panelWidth = 250f
         val panelHeight = 120f
         
-        // 绘制背景
         val bgPaint = Paint().apply {
-            color = Color.argb(180, 0, 0, 0)
+            color = ContextCompat.getColor(context, R.color.dark_background_overlay)
             isAntiAlias = true
         }
         canvas.drawRoundRect(panelX, panelY, panelX + panelWidth, panelY + panelHeight, 
             15f, 15f, bgPaint)
         
-        // 绘制信息
         val probabilityText = "进球概率: ${(recommendation.probability * 100).toInt()}%"
         val powerText = "建议力度: ${(recommendation.power * 100).toInt()}%"
         val cueActionText = "建议杆法: ${getCueActionText(recommendation.cueAction)}"
@@ -533,16 +395,12 @@ class GuideLineView(context: Context) : View(context) {
         }
     }
     
+    private fun distance(p1: PointF, p2: PointF): Float {
+        return sqrt((p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y))
+    }
+    
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         arrowAnimator?.cancel()
-        powerBarAnimator?.cancel()
-    }
-}
-
-// 引用工具类
-object GeometryUtils {
-    fun distance(p1: PointF, p2: PointF): Float {
-        return sqrt((p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y))
     }
 }
