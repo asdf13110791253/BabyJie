@@ -1,15 +1,89 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- File: app/src/main/res/values/colors.xml -->
 <resources>
-    <color name="gold">#FFC107</color>
-    <color name="dark_gold">#FF8F00</color>
-    <color name="dark_background">#1a1a1a</color>
-    <color name="red">#F44336</color>
-    <color name="green">#4CAF50</color>
-    <color name="blue">#3F51B5</color>
-    <color name="orange">#FF5722</color>
+    <!-- 基础颜色 -->
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
     <color name="transparent">#00000000</color>
-    <color name="semi_transparent_black">#80000000</color>
+    
+    <!-- 暗夜玫瑰主题 - 背景色 -->
+    <color name="dark_background">#1E1518</color>
+    <color name="dark_background_secondary">#251A1F</color>
+    <color name="dark_background_tertiary">#2A1E24</color>
+    <color name="dark_background_card">#2A1E24</color>
+    <color name="dark_background_overlay">#CC1E1518</color>
+    
+    <!-- 暗夜玫瑰主题 - 主色 -->
+    <color name="rose_pink">#E56997</color>
+    <color name="rose_pink_light">#F08BAE</color>
+    <color name="rose_pink_dark">#C94F7A</color>
+    <color name="rose_pink_deeper">#A83A62</color>
+    <color name="rose_pink_translucent">#80E56997</color>
+    <color name="rose_pink_glow">#40E56997</color>
+    
+    <!-- 暗夜玫瑰主题 - 金色 -->
+    <color name="champagne_gold">#E8C4A0</color>
+    <color name="champagne_gold_light">#F5DCC0</color>
+    <color name="champagne_gold_dark">#C9A57E</color>
+    <color name="champagne_gold_translucent">#80E8C4A0</color>
+    <color name="champagne_gold_glow">#40E8C4A0</color>
+    
+    <!-- 兼容旧颜色名（保持向后兼容） -->
+    <color name="gold">@color/champagne_gold</color>
+    <color name="dark_gold">@color/champagne_gold_dark</color>
+    <color name="red">#E05555</color>
+    <color name="green">#6BBF8A</color>
+    <color name="blue">#7B9ED6</color>
+    <color name="orange">@color/rose_pink</color>
+    
+    <!-- 半透明色 -->
+    <color name="semi_transparent_black">#801E1518</color>
+    <color name="semi_transparent_white">#80FFFFFF</color>
+    <color name="semi_transparent_rose">#40E56997</color>
+    
+    <!-- 分割线 -->
+    <color name="divider_color">#40E8C4A0</color>
+    <color name="divider_rose">#30E56997</color>
+    
+    <!-- 文本颜色 -->
+    <color name="text_primary">#F5E8EE</color>
+    <color name="text_secondary">#C9B8C0</color>
+    <color name="text_tertiary">#8A7079</color>
+    <color name="text_on_rose">#FFFFFF</color>
+    <color name="text_on_gold">#1E1518</color>
+    
+    <!-- 按钮颜色 -->
+    <color name="button_rose_start">#E56997</color>
+    <color name="button_rose_end">#C94F7A</color>
+    <color name="button_rose_pressed">#A83A62</color>
+    <color name="button_disabled">#404040</color>
+    
+    <!-- 开关颜色 -->
+    <color name="switch_thumb_active">@color/rose_pink</color>
+    <color name="switch_thumb_inactive">#8A7079</color>
+    <color name="switch_track_active">#40E56997</color>
+    <color name="switch_track_inactive">#30262B</color>
+    
+    <!-- 状态栏/导航栏 -->
+    <color name="status_bar_color">@color/dark_background</color>
+    <color name="navigation_bar_color">@color/dark_background</color>
+    
+    <!-- 辅助线颜色 -->
+    <color name="guide_main_line">@color/rose_pink</color>
+    <color name="guide_target_line">@color/rose_pink_light</color>
+    <color name="guide_rebound_line">@color/rose_pink_dark</color>
+    <color name="guide_ai_line">@color/champagne_gold</color>
+    <color name="guide_ai_glow">@color/champagne_gold_glow</color>
+    <color name="guide_power_bar">@color/rose_pink</color>
+    <color name="guide_arrow">#F5E8EE</color>
+    
+    <!-- 悬浮球颜色 -->
+    <color name="floating_ball_start">#F08BAE</color>
+    <color name="floating_ball_center">#E56997</color>
+    <color name="floating_ball_end">#C94F7A</color>
+    <color name="floating_ball_border">#F5DCC0</color>
+    <color name="floating_ball_glow">#40E56997</color>
+    <color name="floating_ball_shadow">#401E1518</color>
+    <color name="floating_ball_icon">#1E1518</color>
+    <color name="floating_ball_highlight">#CCFFFFFF</color>
 </resources>
