@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="@android:color/transparent"
+    android:background="@drawable/card_dark_background"
     android:minWidth="220dp">
     
     <!-- 标题栏 -->
@@ -21,7 +21,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/app_name"
-            android:textColor="@color/gold"
+            android:textColor="@color/rose_pink"
             android:textSize="18sp"
             android:textStyle="bold" />
         
@@ -32,13 +32,20 @@
             android:layout_height="32dp"
             android:text="✕"
             android:textSize="14sp"
-            android:backgroundTint="@android:color/transparent"
-            android:textColor="@android:color/white"
+            android:backgroundTint="@color/transparent"
+            android:textColor="@color/text_secondary"
             android:padding="0dp"
             android:minWidth="0dp"
             android:minHeight="0dp" />
         
     </LinearLayout>
+    
+    <!-- 分隔线 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/divider_color"
+        android:layout_marginBottom="12dp" />
     
     <!-- 主瞄准线开关 -->
     <Switch
@@ -46,8 +53,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/main_line"
-        android:textColor="@android:color/white"
-        android:paddingVertical="4dp" />
+        android:textColor="@color/text_primary"
+        android:paddingVertical="4dp"
+        android:thumbTint="@color/switch_thumb_active"
+        android:trackTint="@color/switch_track_active" />
     
     <!-- 目标球延伸线开关 -->
     <Switch
@@ -55,8 +64,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/target_line"
-        android:textColor="@android:color/white"
-        android:paddingVertical="4dp" />
+        android:textColor="@color/text_primary"
+        android:paddingVertical="4dp"
+        android:thumbTint="@color/switch_thumb_active"
+        android:trackTint="@color/switch_track_active" />
     
     <!-- 库边反弹线开关 -->
     <Switch
@@ -64,8 +75,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/rebound_line"
-        android:textColor="@android:color/white"
-        android:paddingVertical="4dp" />
+        android:textColor="@color/text_primary"
+        android:paddingVertical="4dp"
+        android:thumbTint="@color/switch_thumb_active"
+        android:trackTint="@color/switch_track_active" />
     
     <!-- 力度条开关 -->
     <Switch
@@ -73,8 +86,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/power_bar"
-        android:textColor="@android:color/white"
-        android:paddingVertical="4dp" />
+        android:textColor="@color/text_primary"
+        android:paddingVertical="4dp"
+        android:thumbTint="@color/switch_thumb_active"
+        android:trackTint="@color/switch_track_active" />
     
     <!-- AI推荐路线开关 -->
     <Switch
@@ -82,14 +97,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/ai_recommend"
-        android:textColor="@android:color/white"
-        android:paddingVertical="4dp" />
+        android:textColor="@color/text_primary"
+        android:paddingVertical="4dp"
+        android:thumbTint="@color/switch_thumb_active"
+        android:trackTint="@color/switch_track_active" />
     
     <!-- 分隔线 -->
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="@android:color/darker_gray"
+        android:background="@color/divider_rose"
         android:layout_marginVertical="12dp" />
     
     <!-- 调整识别区域按钮 -->
@@ -98,9 +115,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/adjust_area"
-        android:backgroundTint="@color/gold"
-        android:textColor="@android:color/black"
-        android:layout_marginBottom="8dp" />
+        android:background="@drawable/button_rose_selector"
+        android:textColor="@color/text_on_rose"
+        android:layout_marginBottom="8dp"
+        android:textStyle="bold" />
     
     <!-- 打开设置页按钮 -->
     <Button
@@ -108,8 +126,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/open_settings"
-        android:backgroundTint="@color/blue"
-        android:textColor="@android:color/white"
+        android:backgroundTint="@color/dark_background_tertiary"
+        android:textColor="@color/champagne_gold"
         android:layout_marginBottom="8dp" />
     
     <!-- 关闭悬浮窗按钮 -->
@@ -118,7 +136,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/close_overlay"
-        android:backgroundTint="@color/red"
-        android:textColor="@android:color/white" />
+        android:backgroundTint="@color/rose_pink_dark"
+        android:textColor="@color/text_on_rose" />
     
 </LinearLayout>
