@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- File: app/src/main/res/drawable/ai_line_gradient.xml -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="line">
+    <gradient
+        android:type="linear"
+        android:angle="0"
+        android:startColor="@color/champagne_gold_dark"
+        android:centerColor="@color/champagne_gold"
+        android:endColor="@color/champagne_gold_light" />
+</shape>
