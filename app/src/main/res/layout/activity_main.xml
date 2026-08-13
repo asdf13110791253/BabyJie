@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- File: app/src/main/res/layout/activity_main.xml -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -9,13 +8,22 @@
     android:padding="24dp"
     android:background="@color/dark_background">
     
+    <!-- 装饰性光晕 -->
+    <View
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:background="@drawable/glow_background"
+        android:layout_gravity="center"
+        android:layout_marginTop="-400dp" />
+    
     <!-- 应用图标 -->
     <ImageView
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:src="@android:drawable/ic_menu_camera"
         android:layout_marginBottom="24dp"
-        android:contentDescription="@string/app_name" />
+        android:contentDescription="@string/app_name"
+        android:alpha="0.9" />
     
     <!-- 应用名称 -->
     <TextView
@@ -24,7 +32,7 @@
         android:text="@string/app_name"
         android:textSize="28sp"
         android:textStyle="bold"
-        android:textColor="@color/gold"
+        android:textColor="@color/rose_pink"
         android:layout_marginBottom="8dp" />
     
     <!-- 应用描述 -->
@@ -33,7 +41,7 @@
         android:layout_height="wrap_content"
         android:text="@string/app_description"
         android:textSize="16sp"
-        android:textColor="@android:color/darker_gray"
+        android:textColor="@color/text_secondary"
         android:layout_marginBottom="32dp" />
     
     <!-- 权限状态 -->
@@ -43,19 +51,20 @@
         android:layout_height="wrap_content"
         android:text="@string/overlay_permission_status"
         android:textSize="14sp"
-        android:textColor="@android:color/holo_red_dark"
+        android:textColor="@color/text_secondary"
         android:layout_marginBottom="24dp" />
     
-    <!-- 启动按钮 -->
+    <!-- 启动按钮（玫瑰粉渐变） -->
     <Button
         android:id="@+id/btnStartAssistant"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/start_assistant"
         android:textSize="18sp"
-        android:backgroundTint="@color/gold"
-        android:textColor="@android:color/black"
-        android:padding="12dp" />
+        android:background="@drawable/button_rose_selector"
+        android:textColor="@color/text_on_rose"
+        android:padding="12dp"
+        android:textStyle="bold" />
     
     <!-- 停止按钮 -->
     <Button
@@ -64,9 +73,33 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:text="@string/stop_assistant"
-        android:textSize="18sp"
-        android:backgroundTint="@color/red"
-        android:textColor="@android:color/white"
+        android:textSize="16sp"
+        android:backgroundTint="@color/rose_pink_dark"
+        android:textColor="@color/text_on_rose"
+        android:padding="12dp" />
+    
+    <!-- 设置按钮 -->
+    <Button
+        android:id="@+id/btnOpenSettings"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="@string/open_settings"
+        android:textSize="16sp"
+        android:backgroundTint="@color/dark_background_tertiary"
+        android:textColor="@color/text_secondary"
+        android:padding="12dp" />
+    
+    <!-- 校准按钮 -->
+    <Button
+        android:id="@+id/btnCalibrate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="@string/calibrate"
+        android:textSize="16sp"
+        android:backgroundTint="@color/dark_background_tertiary"
+        android:textColor="@color/champagne_gold"
         android:padding="12dp" />
     
     <!-- 使用说明 -->
@@ -76,7 +109,7 @@
         android:layout_marginTop="32dp"
         android:text="@string/usage_instructions"
         android:textSize="12sp"
-        android:textColor="@android:color/darker_gray"
+        android:textColor="@color/text_tertiary"
         android:gravity="center" />
     
 </LinearLayout>
