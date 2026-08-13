@@ -1,4 +1,3 @@
-// File: app/src/main/java/com/probilliards/ai/service/ScreenCaptureService.kt
 package com.probilliards.ai.service
 
 import android.app.*
@@ -27,7 +26,6 @@ class ScreenCaptureService : Service() {
         private const val TAG = "ScreenCaptureService"
         private const val CHANNEL_ID = "screen_capture_channel"
         private const val NOTIFICATION_ID = 1001
-        
         var isRunning = false
         var screenBitmap: Bitmap? = null
         var instance: ScreenCaptureService? = null
@@ -47,7 +45,6 @@ class ScreenCaptureService : Service() {
         instance = this
         createNotificationChannel()
         handler = Handler(Looper.getMainLooper())
-        
         try {
             val metrics = DisplayMetrics()
             val windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
@@ -58,13 +55,11 @@ class ScreenCaptureService : Service() {
         } catch (e: Exception) {
             Log.e(TAG, "获取屏幕参数失败: ${e.message}")
         }
-        
         isRunning = true
     }
     
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         startForeground(NOTIFICATION_ID, createNotification())
-        
         val resultCode = intent?.getIntExtra("resultCode", -1) ?: -1
         val resultData = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             intent?.getParcelableExtra("resultData", Intent::class.java)
@@ -72,7 +67,6 @@ class ScreenCaptureService : Service() {
             @Suppress("DEPRECATION")
             intent?.getParcelableExtra("resultData")
         }
-        
         if (resultCode != -1 && resultData != null) {
             try {
                 setupMediaProjection(resultCode, resultData)
@@ -81,33 +75,24 @@ class ScreenCaptureService : Service() {
                 stopSelf()
             }
         }
-        
         return START_STICKY
     }
     
     private fun setupMediaProjection(resultCode: Int, resultData: Intent) {
-        val projectionManager = getSystemService(
-            Context.MEDIA_PROJECTION_SERVICE
-        ) as MediaProjectionManager
-        
+        val projectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) 
+            as MediaProjectionManager
         mediaProjection = projectionManager.getMediaProjection(resultCode, resultData)
-        
         if (mediaProjection == null) {
             stopSelf()
             return
         }
-        
-        imageReader = ImageReader.newInstance(
-            screenWidth, screenHeight, PixelFormat.RGBA_8888, 2
-        )
-        
+        imageReader = ImageReader.newInstance(screenWidth, screenHeight, PixelFormat.RGBA_8888, 2)
         virtualDisplay = mediaProjection.createVirtualDisplay(
             "ProBilliardsCapture",
             screenWidth, screenHeight, screenDensity,
             DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
             imageReader.surface, null, handler
         )
-        
         startCaptureLoop()
     }
     
@@ -121,17 +106,14 @@ class ScreenCaptureService : Service() {
                     val pixelStride = plane.pixelStride
                     val rowStride = plane.rowStride
                     val rowPadding = rowStride - pixelStride * screenWidth
-                    
                     val bitmap = Bitmap.createBitmap(
                         screenWidth + rowPadding / pixelStride,
                         screenHeight,
                         Bitmap.Config.ARGB_8888
                     )
                     bitmap.copyPixelsFromBuffer(buffer)
-                    
                     val croppedBitmap = Bitmap.createBitmap(bitmap, 0, 0, screenWidth, screenHeight)
                     screenBitmap = croppedBitmap
-                    
                     image.close()
                     delay(33)
                 } catch (e: Exception) {
