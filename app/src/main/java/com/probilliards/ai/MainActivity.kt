@@ -1,4 +1,3 @@
-
 // File: app/src/main/java/com/probilliards/ai/MainActivity.kt
 package com.probilliards.ai
 
@@ -21,11 +20,16 @@ import com.probilliards.ai.service.ScreenCaptureService
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
- * 主Activity
- * 负责权限申请和服务启动
+ * 主Activity（更新版）
+ * 负责权限申请、校准引导和服务启动
  */
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
+    
+    companion object {
+        private const val PREFS_NAME = "probilliards_prefs"
+        private const val KEY_CALIBRATION_DONE = "calibration_done"
+    }
     
     private lateinit var binding: ActivityMainBinding
     private lateinit var mediaProjectionManager: MediaProjectionManager
@@ -76,6 +80,23 @@ class MainActivity : AppCompatActivity() {
         
         setupClickListeners()
         updatePermissionStatus()
+        
+        // 检查是否需要显示校准引导
+        checkCalibrationGuide()
+    }
+    
+    /**
+     * 检查是否需要显示校准引导
+     */
+    private fun checkCalibrationGuide() {
+        val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+        val calibrationDone = prefs.getBoolean(KEY_CALIBRATION_DONE, false)
+        
+        if (!calibrationDone) {
+            // 显示校准引导
+            val intent = Intent(this, CalibrationGuideActivity::class.java)
+            startActivity(intent)
+        }
     }
     
     private fun setupClickListeners() {
@@ -85,6 +106,18 @@ class MainActivity : AppCompatActivity() {
         
         binding.btnStopAssistant.setOnClickListener {
             stopAssistant()
+        }
+        
+        // 添加设置按钮
+        binding.btnOpenSettings.setOnClickListener {
+            val intent = Intent(this, SettingsActivity::class.java)
+            startActivity(intent)
+        }
+        
+        // 添加校准按钮
+        binding.btnCalibrate.setOnClickListener {
+            val intent = Intent(this, CalibrationGuideActivity::class.java)
+            startActivity(intent)
         }
     }
     
@@ -158,6 +191,9 @@ class MainActivity : AppCompatActivity() {
         startFloatingWindowService()
         
         Toast.makeText(this, R.string.assistant_started, Toast.LENGTH_SHORT).show()
+        
+        // 可选：启动后自动最小化
+        moveTaskToBack(true)
     }
     
     /**
