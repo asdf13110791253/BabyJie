@@ -2,17 +2,16 @@
 package com.probilliards.ai.overlay
 
 import android.content.Context
-import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
 import android.widget.Switch
 import androidx.cardview.widget.CardView
+import androidx.core.content.ContextCompat
 import com.probilliards.ai.R
 
 /**
- * 控制面板视图（更新版）
- * 包含所有功能开关和按钮，支持动画
+ * 控制面板视图（暗夜玫瑰主题版）
  */
 class ControlPanelView(context: Context) : CardView(context) {
     
@@ -35,8 +34,8 @@ class ControlPanelView(context: Context) : CardView(context) {
         cardElevation = 8f
         setContentPadding(16, 16, 16, 16)
         
-        // 设置背景
-        setCardBackgroundColor(Color.argb(230, 30, 30, 30))
+        // 设置背景颜色
+        setCardBackgroundColor(ContextCompat.getColor(context, R.color.dark_background_card))
         
         // 初始化开关
         setupSwitch(view, R.id.switchMainLine, "main_line", context.getString(R.string.main_line))
@@ -57,12 +56,25 @@ class ControlPanelView(context: Context) : CardView(context) {
         view.findViewById<Button>(R.id.btnClose).setOnClickListener {
             onCloseClick?.invoke()
         }
+        
+        // 快速关闭按钮
+        view.findViewById<Button>(R.id.btnQuickClose)?.setOnClickListener {
+            onCloseClick?.invoke()
+        }
     }
     
     private fun setupSwitch(root: View, switchId: Int, key: String, label: String) {
         val switchView = root.findViewById<Switch>(switchId)
         switchView.text = label
-        switchView.setTextColor(Color.WHITE)
+        switchView.setTextColor(ContextCompat.getColor(context, R.color.text_primary))
+        
+        // 设置开关颜色
+        switchView.thumbTintList = android.content.res.ColorStateList.valueOf(
+            ContextCompat.getColor(context, R.color.switch_thumb_active)
+        )
+        switchView.trackTintList = android.content.res.ColorStateList.valueOf(
+            ContextCompat.getColor(context, R.color.switch_track_active)
+        )
         
         // 从SharedPreferences加载状态
         val prefs = context.getSharedPreferences("probilliards_prefs", Context.MODE_PRIVATE)
@@ -86,16 +98,10 @@ class ControlPanelView(context: Context) : CardView(context) {
         return switches[key]?.isChecked ?: false
     }
     
-    /**
-     * 设置所有开关状态
-     */
     fun setAllSwitches(enabled: Boolean) {
         switches.values.forEach { it.isChecked = enabled }
     }
     
-    /**
-     * 获取所有开关状态
-     */
     fun getAllSwitchStates(): Map<String, Boolean> {
         return switches.mapValues { it.value.isChecked }
     }
