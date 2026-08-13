@@ -1,1 +1,15 @@
-
+<?xml version="1.0" encoding="utf-8"?>
+<!-- File: app/src/main/res/values/colors.xml -->
+<resources>
+    <color name="gold">#FFC107</color>
+    <color name="dark_gold">#FF8F00</color>
+    <color name="dark_background">#1a1a1a</color>
+    <color name="red">#F44336</color>
+    <color name="green">#4CAF50</color>
+    <color name="blue">#3F51B5</color>
+    <color name="orange">#FF5722</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="transparent">#00000000</color>
+    <color name="semi_transparent_black">#80000000</color>
+</resources>
