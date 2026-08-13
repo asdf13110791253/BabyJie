@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!-- 极简主题：无复杂背景、无特殊圆角，避免资源缺失 -->
-    <style name="Theme.BabyJie" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="android:statusBarColor">#000000</item>
-        <item name="android:navigationBarColor">#000000</item>
-    </style>
-</resources>
