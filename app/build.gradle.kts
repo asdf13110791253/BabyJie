@@ -16,10 +16,17 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0.0"
+
+        ndk {
+            abiFilters += listOf("arm64-v8a", "armeabi-v7a")
+        }
     }
 
     buildTypes {
         release {
+            isMinifyEnabled = false
+        }
+        debug {
             isMinifyEnabled = false
         }
     }
@@ -37,6 +44,21 @@ android {
         viewBinding = true
         dataBinding = true
     }
+    
+    sourceSets {
+        getByName("main") {
+            jniLibs.srcDirs("src/main/jniLibs")
+        }
+    }
+    
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
 }
 
 dependencies {
@@ -46,6 +68,7 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     
     // Hilt
     implementation("com.google.dagger:hilt-android:2.48")
@@ -54,8 +77,8 @@ dependencies {
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     
-    // OpenCV - 使用 JitPack 自动下载
-    implementation("com.quickbirdstudios:opencv:4.5.3.0")
+    // OpenCV
+    implementation(files("libs/opencv-java4.jar"))
     
     // CardView
     implementation("androidx.cardview:cardview:1.0.0")
