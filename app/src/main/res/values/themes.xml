@@ -1,1 +1,12 @@
-
+<?xml version="1.0" encoding="utf-8"?>
+<!-- File: app/src/main/res/values/themes.xml -->
+<resources>
+    <style name="Theme.ProBilliards" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/gold</item>
+        <item name="colorPrimaryDark">@color/dark_gold</item>
+        <item name="colorAccent">@color/gold</item>
+        <item name="android:statusBarColor">@color/dark_background</item>
+        <item name="android:navigationBarColor">@color/dark_background</item>
+        <item name="android:windowBackground">@color/dark_background</item>
+    </style>
+</resources>
