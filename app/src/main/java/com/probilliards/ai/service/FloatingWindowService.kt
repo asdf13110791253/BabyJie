@@ -1,4 +1,3 @@
-// File: app/src/main/java/com/probilliards/ai/service/FloatingWindowService.kt
 package com.probilliards.ai.service
 
 import android.app.*
