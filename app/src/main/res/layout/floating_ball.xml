@@ -1,1 +1,14 @@
-
+<?xml version="1.0" encoding="utf-8"?>
+<!-- File: app/src/main/res/layout/floating_ball.xml -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+    
+    <!-- 悬浮球容器 -->
+    <View
+        android:id="@+id/ball_container"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:background="@drawable/floating_ball_bg" />
+        
+</FrameLayout>
