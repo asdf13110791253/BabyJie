@@ -1,4 +1,3 @@
-
 // File: app/src/main/java/com/probilliards/ai/overlay/ControlPanelView.kt
 package com.probilliards.ai.overlay
 
@@ -12,8 +11,8 @@ import androidx.cardview.widget.CardView
 import com.probilliards.ai.R
 
 /**
- * 控制面板视图
- * 包含所有功能开关和按钮
+ * 控制面板视图（更新版）
+ * 包含所有功能开关和按钮，支持动画
  */
 class ControlPanelView(context: Context) : CardView(context) {
     
@@ -40,11 +39,11 @@ class ControlPanelView(context: Context) : CardView(context) {
         setCardBackgroundColor(Color.argb(230, 30, 30, 30))
         
         // 初始化开关
-        setupSwitch(view, R.id.switchMainLine, "main_line", "主瞄准线")
-        setupSwitch(view, R.id.switchTargetLine, "target_line", "目标球延伸线")
-        setupSwitch(view, R.id.switchReboundLine, "rebound_line", "库边反弹线")
-        setupSwitch(view, R.id.switchPowerBar, "power_bar", "力度条")
-        setupSwitch(view, R.id.switchAIRecommend, "ai_recommend", "AI推荐路线")
+        setupSwitch(view, R.id.switchMainLine, "main_line", context.getString(R.string.main_line))
+        setupSwitch(view, R.id.switchTargetLine, "target_line", context.getString(R.string.target_line))
+        setupSwitch(view, R.id.switchReboundLine, "rebound_line", context.getString(R.string.rebound_line))
+        setupSwitch(view, R.id.switchPowerBar, "power_bar", context.getString(R.string.power_bar))
+        setupSwitch(view, R.id.switchAIRecommend, "ai_recommend", context.getString(R.string.ai_recommend))
         
         // 设置按钮点击事件
         view.findViewById<Button>(R.id.btnAdjustArea).setOnClickListener {
@@ -70,6 +69,7 @@ class ControlPanelView(context: Context) : CardView(context) {
         switchView.isChecked = prefs.getBoolean("feature_$key", 
             when(key) {
                 "main_line" -> true
+                "ai_recommend" -> true
                 else -> false
             }
         )
@@ -84,5 +84,19 @@ class ControlPanelView(context: Context) : CardView(context) {
     
     fun getSwitchState(key: String): Boolean {
         return switches[key]?.isChecked ?: false
+    }
+    
+    /**
+     * 设置所有开关状态
+     */
+    fun setAllSwitches(enabled: Boolean) {
+        switches.values.forEach { it.isChecked = enabled }
+    }
+    
+    /**
+     * 获取所有开关状态
+     */
+    fun getAllSwitchStates(): Map<String, Boolean> {
+        return switches.mapValues { it.value.isChecked }
     }
 }
