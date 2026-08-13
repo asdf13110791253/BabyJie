@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- File: app/src/main/res/layout/activity_settings.xml -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/dark_background">
+    
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+        
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="辅助线设置"
+            android:textColor="@color/gold"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="20dp" />
+        
+        <!-- 主线颜色 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="主瞄准线颜色"
+            android:textColor="@android:color/white"
+            android:textSize="16sp" />
+        
+        <Spinner
+            android:id="@+id/spinnerMainLineColor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp" />
+        
+        <!-- 目标线颜色 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="目标球延伸线颜色"
+            android:textColor="@android:color/white"
+            android:textSize="16sp" />
+        
+        <Spinner
+            android:id="@+id/spinnerTargetLineColor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp" />
+        
+        <!-- 反弹线颜色 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="库边反弹线颜色"
+            android:textColor="@android:color/white"
+            android:textSize="16sp" />
+        
+        <Spinner
+            android:id="@+id/spinnerReboundLineColor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp" />
+        
+        <!-- AI线颜色 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="AI推荐路线颜色"
+            android:textColor="@android:color/white"
+            android:textSize="16sp" />
+        
+        <Spinner
+            android:id="@+id/spinnerAILineColor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp" />
+        
+        <!-- 线宽 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="线条粗细"
+            android:textColor="@android:color/white"
+            android:textSize="16sp" />
+        
+        <SeekBar
+            android:id="@+id/seekBarLineWidth"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp" />
+        
+        <!-- 透明度 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="线条透明度"
+            android:textColor="@android:color/white"
+            android:textSize="16sp" />
+        
+        <SeekBar
+            android:id="@+id/seekBarLineAlpha"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp" />
+        
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="AI设置"
+            android:textColor="@color/gold"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="20dp" />
+        
+        <!-- AI模式 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="AI模式"
+            android:textColor="@android:color/white"
+            android:textSize="16sp" />
+        
+        <Spinner
+            android:id="@+id/spinnerAIMode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp" />
+        
+        <!-- 帧率模式 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="处理帧率"
+            android:textColor="@android:color/white"
+            android:textSize="16sp" />
+        
+        <Spinner
+            android:id="@+id/spinnerFrameRateMode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp" />
+        
+        <!-- 按钮 -->
+        <Button
+            android:id="@+id/btnSave"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="保存设置"
+            android:backgroundTint="@color/gold"
+            android:textColor="@android:color/black"
+            android:layout_marginBottom="8dp" />
+        
+        <Button
+            android:id="@+id/btnReset"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="重置默认"
+            android:backgroundTint="@color/red"
+            android:textColor="@android:color/white" />
+        
+    </LinearLayout>
+    
+</ScrollView>
