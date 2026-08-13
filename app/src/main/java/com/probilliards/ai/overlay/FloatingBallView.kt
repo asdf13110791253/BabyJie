@@ -7,11 +7,12 @@ import android.os.Handler
 import android.os.Looper
 import android.view.MotionEvent
 import android.view.View
+import androidx.core.content.ContextCompat
+import com.probilliards.ai.R
 import kotlin.math.abs
 
 /**
- * 悬浮球视图（更新版）
- * 支持单击展开面板、长按快速拖动
+ * 悬浮球视图（暗夜玫瑰主题版）
  */
 class FloatingBallView(context: Context) : View(context) {
     
@@ -19,21 +20,42 @@ class FloatingBallView(context: Context) : View(context) {
     var onBallDrag: ((Int, Int) -> Unit)? = null
     var onBallLongPress: (() -> Unit)? = null
     
+    // 主题颜色
+    private val ballStartColor = ContextCompat.getColor(context, R.color.floating_ball_start)
+    private val ballCenterColor = ContextCompat.getColor(context, R.color.floating_ball_center)
+    private val ballEndColor = ContextCompat.getColor(context, R.color.floating_ball_end)
+    private val ballBorderColor = ContextCompat.getColor(context, R.color.floating_ball_border)
+    private val ballGlowColor = ContextCompat.getColor(context, R.color.floating_ball_glow)
+    private val ballShadowColor = ContextCompat.getColor(context, R.color.floating_ball_shadow)
+    private val ballIconColor = ContextCompat.getColor(context, R.color.floating_ball_icon)
+    private val ballHighlightColor = ContextCompat.getColor(context, R.color.floating_ball_highlight)
+    
     private val ballPaint = Paint().apply {
-        color = Color.rgb(255, 193, 7)
+        isAntiAlias = true
+        style = Paint.Style.FILL
+        shader = RadialGradient(
+            25f, 25f, 40f,
+            intArrayOf(ballStartColor, ballCenterColor, ballEndColor),
+            floatArrayOf(0f, 0.6f, 1f),
+            Shader.TileMode.CLAMP
+        )
+    }
+    
+    private val borderPaint = Paint().apply {
+        color = ballBorderColor
+        isAntiAlias = true
+        style = Paint.Style.STROKE
+        strokeWidth = 2f
+    }
+    
+    private val glowPaint = Paint().apply {
+        color = ballGlowColor
         isAntiAlias = true
         style = Paint.Style.FILL
     }
     
-    private val borderPaint = Paint().apply {
-        color = Color.WHITE
-        isAntiAlias = true
-        style = Paint.Style.STROKE
-        strokeWidth = 4f
-    }
-    
     private val iconPaint = Paint().apply {
-        color = Color.BLACK
+        color = ballIconColor
         isAntiAlias = true
         textAlign = Paint.Align.CENTER
         textSize = 30f
@@ -46,7 +68,7 @@ class FloatingBallView(context: Context) : View(context) {
     private var lastTouchX = 0f
     private var lastTouchY = 0f
     private var dragThreshold = 10f
-    private var longPressThreshold = 500L // 500ms
+    private var longPressThreshold = 500L
     
     private val handler = Handler(Looper.getMainLooper())
     private val longPressRunnable = Runnable {
@@ -71,38 +93,44 @@ class FloatingBallView(context: Context) : View(context) {
         val cx = width / 2f
         val cy = height / 2f
         
-        // 绘制阴影
+        // 外层光晕
+        canvas.drawCircle(cx, cy, ballRadius + 8, glowPaint)
+        
+        // 阴影
         val shadowPaint = Paint().apply {
-            color = Color.argb(60, 0, 0, 0)
+            color = ballShadowColor
             isAntiAlias = true
         }
         canvas.drawCircle(cx + 3, cy + 3, ballRadius, shadowPaint)
         
-        // 绘制球体
+        // 球体（渐变）
         canvas.drawCircle(cx, cy, ballRadius, ballPaint)
+        
+        // 边框
         canvas.drawCircle(cx, cy, ballRadius, borderPaint)
         
-        // 绘制8号球图标
-        canvas.drawCircle(cx, cy - 10, 12f, Paint().apply {
-            color = Color.BLACK
-            isAntiAlias = true
-        })
-        canvas.drawText("8", cx, cy + 8, iconPaint)
-        
-        // 绘制高光
-        val highlightPaint = Paint().apply {
-            color = Color.argb(100, 255, 255, 255)
+        // 8号球图标
+        val iconCirclePaint = Paint().apply {
+            color = ballIconColor
             isAntiAlias = true
         }
-        canvas.drawCircle(cx - 10, cy - 15, 8f, highlightPaint)
+        canvas.drawCircle(cx, cy - 10, 12f, iconCirclePaint)
+        canvas.drawText("8", cx, cy + 8, iconPaint)
         
-        // 长按状态显示不同效果
+        // 高光
+        val highlightPaint = Paint().apply {
+            color = ballHighlightColor
+            isAntiAlias = true
+        }
+        canvas.drawCircle(cx - 12, cy - 15, 10f, highlightPaint)
+        
+        // 长按状态显示
         if (isLongPress) {
-            val glowPaint = Paint().apply {
-                color = Color.argb(50, 255, 255, 255)
+            val longPressGlowPaint = Paint().apply {
+                color = ContextCompat.getColor(context, R.color.rose_pink_glow)
                 isAntiAlias = true
             }
-            canvas.drawCircle(cx, cy, ballRadius + 8, glowPaint)
+            canvas.drawCircle(cx, cy, ballRadius + 12, longPressGlowPaint)
         }
     }
     
@@ -113,8 +141,6 @@ class FloatingBallView(context: Context) : View(context) {
                 isLongPress = false
                 lastTouchX = event.rawX
                 lastTouchY = event.rawY
-                
-                // 启动长按检测
                 handler.postDelayed(longPressRunnable, longPressThreshold)
                 return true
             }
@@ -125,7 +151,6 @@ class FloatingBallView(context: Context) : View(context) {
                 
                 if (dx > dragThreshold || dy > dragThreshold) {
                     isDragging = true
-                    // 如果已经开始拖动，取消长按检测
                     handler.removeCallbacks(longPressRunnable)
                 }
                 
@@ -143,7 +168,6 @@ class FloatingBallView(context: Context) : View(context) {
                 handler.removeCallbacks(longPressRunnable)
                 
                 if (!isDragging && !isLongPress) {
-                    // 单击事件
                     performClick()
                     onBallClick?.invoke()
                 }
