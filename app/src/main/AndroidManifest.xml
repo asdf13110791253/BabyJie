@@ -30,18 +30,6 @@
             </intent-filter>
         </activity>
 
-        <activity
-            android:name=".SettingsActivity"
-            android:exported="false"
-            android:theme="@style/Theme.ProBilliards"
-            android:screenOrientation="portrait" />
-
-        <activity
-            android:name=".CalibrationGuideActivity"
-            android:exported="false"
-            android:theme="@style/Theme.ProBilliards"
-            android:screenOrientation="portrait" />
-
         <service
             android:name=".service.ScreenCaptureService"
             android:exported="false"
