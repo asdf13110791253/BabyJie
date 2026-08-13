@@ -6,20 +6,15 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.PixelFormat
 import android.os.Build
-import android.os.Handler
 import android.os.IBinder
-import android.os.Looper
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
-import android.widget.Toast
 import androidx.core.app.NotificationCompat
-import com.probilliards.ai.R
 import com.probilliards.ai.overlay.ControlPanelView
 import com.probilliards.ai.overlay.FloatingBallView
 import com.probilliards.ai.overlay.GuideLineView
 import com.probilliards.ai.overlay.SelectionRectView
-import kotlinx.coroutines.*
 
 class FloatingWindowService : Service() {
     
@@ -157,12 +152,9 @@ class FloatingWindowService : Service() {
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
-                CHANNEL_ID,
-                "悬浮窗服务",
-                NotificationManager.IMPORTANCE_LOW
+                CHANNEL_ID, "悬浮窗服务", NotificationManager.IMPORTANCE_LOW
             )
-            val nm = getSystemService(NotificationManager::class.java)
-            nm.createNotificationChannel(channel)
+            getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
         }
     }
     
@@ -171,6 +163,7 @@ class FloatingWindowService : Service() {
             .setContentTitle("ProBilliards AI")
             .setContentText("悬浮辅助运行中")
             .setSmallIcon(android.R.drawable.ic_menu_camera)
+            .setOngoing(true)
             .build())
         return START_STICKY
     }
@@ -178,10 +171,12 @@ class FloatingWindowService : Service() {
     override fun onDestroy() {
         isRunning = false
         instance = null
-        windowManager.removeView(floatingBallView)
-        windowManager.removeView(controlPanelView)
-        windowManager.removeView(guideLineView)
-        windowManager.removeView(selectionRectView)
+        try {
+            windowManager.removeView(floatingBallView)
+            windowManager.removeView(controlPanelView)
+            windowManager.removeView(guideLineView)
+            windowManager.removeView(selectionRectView)
+        } catch (e: Exception) {}
         super.onDestroy()
     }
     
