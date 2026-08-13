@@ -3,7 +3,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- 权限声明 -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
@@ -14,13 +13,12 @@
     <application
         android:name=".ProBilliardsApp"
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@android:drawable/ic_menu_camera"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.ProBilliards"
         tools:targetApi="34">
 
-        <!-- 主Activity -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -32,27 +30,23 @@
             </intent-filter>
         </activity>
 
-        <!-- 设置Activity -->
         <activity
             android:name=".SettingsActivity"
             android:exported="false"
             android:theme="@style/Theme.ProBilliards"
             android:screenOrientation="portrait" />
 
-        <!-- 校准引导Activity -->
         <activity
             android:name=".CalibrationGuideActivity"
             android:exported="false"
             android:theme="@style/Theme.ProBilliards"
             android:screenOrientation="portrait" />
 
-        <!-- 屏幕采集服务 -->
         <service
             android:name=".service.ScreenCaptureService"
             android:exported="false"
             android:foregroundServiceType="mediaProjection" />
 
-        <!-- 悬浮窗服务 -->
         <service
             android:name=".service.FloatingWindowService"
             android:exported="false"
