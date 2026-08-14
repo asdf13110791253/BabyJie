@@ -62,7 +62,7 @@
         android:background="@color/divider_color"
         android:layout_marginVertical="12dp" />
 
-    <!-- 新增：设置按钮，对应 btnOpenSettings -->
+    <!-- 新增：设置按钮，对应 ControlPanelView 中的 btnOpenSettings -->
     <Button
         android:id="@+id/btnOpenSettings"
         android:layout_width="match_parent"
@@ -81,9 +81,9 @@
         android:textColor="@color/text_on_rose"
         android:layout_marginBottom="8dp" />
 
-    <!-- 关闭按钮 ID 改为 btnQuickClose -->
+    <!-- 保留 btnClose，与 ControlPanelView 中的引用一致 -->
     <Button
-        android:id="@+id/btnQuickClose"
+        android:id="@+id/btnClose"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/close_overlay"
