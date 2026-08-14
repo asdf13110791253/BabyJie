@@ -1,4 +1,3 @@
-// File: app/src/main/java/com/probilliards/ai/ai/ShotRecommender.kt
 package com.probilliards.ai.ai
 
 import android.graphics.PointF
@@ -33,7 +32,6 @@ class ShotRecommender {
     ): ShotRecommendation? {
         var bestShot: ShotRecommendation? = null
         var bestScore = 0f
-        
         for (targetBall in balls) {
             if (targetBall.isWhite) continue
             for (pocket in pockets) {
@@ -44,35 +42,27 @@ class ShotRecommender {
                 }
             }
         }
-        
         return bestShot
     }
     
     private fun evaluateShot(whiteBall: Ball, targetBall: Ball, pocket: PointF): ShotRecommendation? {
         val whitePos = whiteBall.position
         val targetPos = targetBall.position
-        
         val dx = pocket.x - targetPos.x
         val dy = pocket.y - targetPos.y
         val dist = sqrt(dx * dx + dy * dy)
-        
         if (dist < 1) return null
-        
         val unitX = dx / dist
         val unitY = dy / dist
-        
         val ballDiameter = targetBall.radius * 2
         val aimX = targetPos.x - unitX * ballDiameter
         val aimY = targetPos.y - unitY * ballDiameter
-        
         val whiteDx = aimX - whitePos.x
         val whiteDy = aimY - whitePos.y
         val whiteDist = sqrt(whiteDx * whiteDx + whiteDy * whiteDy)
-        
         val probability = max(0f, 1f - whiteDist / 2000f)
         val power = min(1f, max(0.2f, (whiteDist + dist) / 500f))
         val score = probability * 100
-        
         return ShotRecommendation(
             whiteBall = whiteBall,
             targetBall = targetBall,
