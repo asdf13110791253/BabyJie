@@ -1,3 +1,4 @@
+# File: .github/workflows/build.yml
 name: Build Android APK
 
 on:
@@ -28,27 +29,42 @@ jobs:
       with:
         gradle-version: '8.2'
     
-    - name: Download OpenCV Android SDK
+    - name: Download and prepare OpenCV
       run: |
-        echo "=== 下载 OpenCV ==="
+        echo "=== 下载 OpenCV Android SDK ==="
         curl -L -o opencv.zip https://github.com/opencv/opencv/releases/download/4.9.0/opencv-4.9.0-android-sdk.zip
         echo "=== 检查下载文件 ==="
-        ls -la opencv.zip
+        ls -lh opencv.zip
         echo "=== 解压 ==="
         unzip -q opencv.zip
-        echo "=== 查找 SDK 目录 ==="
+        echo "=== 列出解压后的根目录 ==="
         ls -la
-        echo "=== 创建目录 ==="
+        # 查找 opencv-java4.jar 的实际路径
+        echo "=== 查找 jar 文件 ==="
+        find . -name "opencv-java4.jar" -type f
+        # 确保 app/libs 目录存在
         mkdir -p app/libs
+        # 直接复制找到的 jar 文件（如果存在）
+        JAR_PATH=$(find . -name "opencv-java4.jar" -type f | head -n 1)
+        if [ -n "$JAR_PATH" ]; then
+          cp "$JAR_PATH" app/libs/
+          echo "=== jar 复制成功 ==="
+        else
+          echo "!!! 未找到 opencv-java4.jar，构建将失败 !!!"
+          exit 1
+        fi
+        # 复制 native 库到 jniLibs
         mkdir -p app/src/main/jniLibs
-        echo "=== 复制 jar ==="
-        find . -name "opencv-java4.jar" -exec cp {} app/libs/ \;
-        echo "=== 复制 native 库 ==="
-        find . -path "*/native/libs/*" -type d | while read dir; do
-          cp -r "$dir"/* app/src/main/jniLibs/
-        done
-        echo "=== 验证 ==="
+        NATIVE_DIR=$(find . -path "*/native/libs" -type d | head -n 1)
+        if [ -n "$NATIVE_DIR" ]; then
+          cp -r "$NATIVE_DIR"/* app/src/main/jniLibs/
+          echo "=== native 库复制成功 ==="
+        else
+          echo "!!! 未找到 native 库目录 !!!"
+        fi
+        echo "=== 验证 app/libs 内容 ==="
         ls -la app/libs/
+        echo "=== 验证 jniLibs 内容 ==="
         ls -la app/src/main/jniLibs/
     
     - name: Build Debug APK
