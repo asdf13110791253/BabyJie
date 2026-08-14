@@ -62,7 +62,7 @@
         android:background="@color/divider_color"
         android:layout_marginVertical="12dp" />
 
-    <!-- 新增：设置按钮，对应 ControlPanelView 中的 btnOpenSettings -->
+    <!-- btnOpenSettings：代码中有引用 -->
     <Button
         android:id="@+id/btnOpenSettings"
         android:layout_width="match_parent"
@@ -81,7 +81,17 @@
         android:textColor="@color/text_on_rose"
         android:layout_marginBottom="8dp" />
 
-    <!-- 保留 btnClose，与 ControlPanelView 中的引用一致 -->
+    <!-- btnQuickClose：ControlPanelView.kt 第 61 行引用，保留它 -->
+    <Button
+        android:id="@+id/btnQuickClose"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Quick Close"
+        android:backgroundTint="@color/rose_pink_dark"
+        android:textColor="@color/text_on_rose"
+        android:layout_marginBottom="8dp" />
+
+    <!-- btnClose：ControlPanelView.kt 第 56 行引用，保留它 -->
     <Button
         android:id="@+id/btnClose"
         android:layout_width="match_parent"
