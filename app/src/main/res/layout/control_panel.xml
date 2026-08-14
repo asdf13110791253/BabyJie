@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- File: app/src/main/res/layout/control_panel.xml -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
@@ -7,109 +6,62 @@
     android:padding="16dp"
     android:background="@drawable/card_dark_background"
     android:minWidth="220dp">
-    
-    <!-- 标题栏 -->
-    <LinearLayout
-        android:layout_width="match_parent"
+
+    <TextView
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginBottom="12dp">
-        
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/app_name"
-            android:textColor="@color/rose_pink"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-        
-        <!-- 快速关闭按钮 -->
-        <Button
-            android:id="@+id/btnQuickClose"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:text="✕"
-            android:textSize="14sp"
-            android:backgroundTint="@color/transparent"
-            android:textColor="@color/text_secondary"
-            android:padding="0dp"
-            android:minWidth="0dp"
-            android:minHeight="0dp" />
-        
-    </LinearLayout>
-    
-    <!-- 分隔线 -->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/divider_color"
+        android:text="@string/app_name"
+        android:textColor="@color/rose_pink"
+        android:textSize="18sp"
+        android:textStyle="bold"
         android:layout_marginBottom="12dp" />
-    
-    <!-- 主瞄准线开关 -->
+
     <Switch
         android:id="@+id/switchMainLine"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/main_line"
         android:textColor="@color/text_primary"
-        android:paddingVertical="4dp"
-        android:thumbTint="@color/switch_thumb_active"
-        android:trackTint="@color/switch_track_active" />
-    
-    <!-- 目标球延伸线开关 -->
+        android:paddingVertical="4dp" />
+
     <Switch
         android:id="@+id/switchTargetLine"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/target_line"
         android:textColor="@color/text_primary"
-        android:paddingVertical="4dp"
-        android:thumbTint="@color/switch_thumb_active"
-        android:trackTint="@color/switch_track_active" />
-    
-    <!-- 库边反弹线开关 -->
+        android:paddingVertical="4dp" />
+
     <Switch
         android:id="@+id/switchReboundLine"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/rebound_line"
         android:textColor="@color/text_primary"
-        android:paddingVertical="4dp"
-        android:thumbTint="@color/switch_thumb_active"
-        android:trackTint="@color/switch_track_active" />
-    
-    <!-- 力度条开关 -->
+        android:paddingVertical="4dp" />
+
     <Switch
         android:id="@+id/switchPowerBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/power_bar"
         android:textColor="@color/text_primary"
-        android:paddingVertical="4dp"
-        android:thumbTint="@color/switch_thumb_active"
-        android:trackTint="@color/switch_track_active" />
-    
-    <!-- AI推荐路线开关 -->
+        android:paddingVertical="4dp" />
+
     <Switch
         android:id="@+id/switchAIRecommend"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/ai_recommend"
         android:textColor="@color/text_primary"
-        android:paddingVertical="4dp"
-        android:thumbTint="@color/switch_thumb_active"
-        android:trackTint="@color/switch_track_active" />
-    
-    <!-- 分隔线 -->
+        android:paddingVertical="4dp" />
+
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="@color/divider_rose"
+        android:background="@color/divider_color"
         android:layout_marginVertical="12dp" />
-    
-    <!-- 调整识别区域按钮 -->
+
     <Button
         android:id="@+id/btnAdjustArea"
         android:layout_width="match_parent"
@@ -117,20 +69,8 @@
         android:text="@string/adjust_area"
         android:background="@drawable/button_rose_selector"
         android:textColor="@color/text_on_rose"
-        android:layout_marginBottom="8dp"
-        android:textStyle="bold" />
-    
-    <!-- 打开设置页按钮 -->
-    <Button
-        android:id="@+id/btnOpenSettings"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/open_settings"
-        android:backgroundTint="@color/dark_background_tertiary"
-        android:textColor="@color/champagne_gold"
         android:layout_marginBottom="8dp" />
-    
-    <!-- 关闭悬浮窗按钮 -->
+
     <Button
         android:id="@+id/btnClose"
         android:layout_width="match_parent"
@@ -138,5 +78,5 @@
         android:text="@string/close_overlay"
         android:backgroundTint="@color/rose_pink_dark"
         android:textColor="@color/text_on_rose" />
-    
+
 </LinearLayout>
