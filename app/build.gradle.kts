@@ -76,8 +76,8 @@ dependencies {
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     
-    // OpenCV
-    implementation(files("libs/opencv-java4.jar"))
+    // OpenCV (从 Maven 获取)
+    implementation("com.quickbirdstudios:opencv:4.9.0")
     
     // CardView
     implementation("androidx.cardview:cardview:1.0.0")
