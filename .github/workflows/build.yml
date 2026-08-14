@@ -29,7 +29,10 @@ jobs:
         gradle-version: '8.2'
     
     - name: Build Debug APK
-      run: gradle assembleDebug --no-daemon --stacktrace
+      run: |
+        rm -rf app/libs          # 清除可能残留的本地库
+        gradle clean --no-daemon
+        gradle assembleDebug --no-daemon --stacktrace --refresh-dependencies
     
     - name: Upload APK
       uses: actions/upload-artifact@v4
