@@ -3,6 +3,7 @@ package com.probilliards.ai
 import android.app.Application
 import android.util.Log
 import dagger.hilt.android.HiltAndroidApp
+import org.opencv.android.OpenCVLoader
 
 @HiltAndroidApp
 class ProBilliardsApp : Application() {
@@ -22,7 +23,7 @@ class ProBilliardsApp : Application() {
     fun initOpenCV(): Boolean {
         if (isOpenCVInitialized) return true
         return try {
-            val result = org.opencv.android.OpenCVLoader.initLocal()
+            val result = OpenCVLoader.initLocal()
             isOpenCVInitialized = result
             Log.d(TAG, "OpenCV 初始化: $result")
             result
