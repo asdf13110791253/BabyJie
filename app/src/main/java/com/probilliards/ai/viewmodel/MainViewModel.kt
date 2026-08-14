@@ -1,4 +1,3 @@
-// File: app/src/main/java/com/probilliards/ai/viewmodel/MainViewModel.kt
 package com.probilliards.ai.viewmodel
 
 import androidx.lifecycle.ViewModel
@@ -16,6 +15,4 @@ class MainViewModel @Inject constructor(
     private val ballDetector: BallDetector,
     private val pocketDetector: PocketDetector,
     private val shotRecommender: ShotRecommender
-) : ViewModel() {
-    // 简化的ViewModel
-}
+) : ViewModel()
