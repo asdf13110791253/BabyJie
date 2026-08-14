@@ -62,6 +62,16 @@
         android:background="@color/divider_color"
         android:layout_marginVertical="12dp" />
 
+    <!-- 新增：设置按钮，对应 btnOpenSettings -->
+    <Button
+        android:id="@+id/btnOpenSettings"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Settings"
+        android:background="@drawable/button_rose_selector"
+        android:textColor="@color/text_on_rose"
+        android:layout_marginBottom="8dp" />
+
     <Button
         android:id="@+id/btnAdjustArea"
         android:layout_width="match_parent"
@@ -71,8 +81,9 @@
         android:textColor="@color/text_on_rose"
         android:layout_marginBottom="8dp" />
 
+    <!-- 关闭按钮 ID 改为 btnQuickClose -->
     <Button
-        android:id="@+id/btnClose"
+        android:id="@+id/btnQuickClose"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/close_overlay"
