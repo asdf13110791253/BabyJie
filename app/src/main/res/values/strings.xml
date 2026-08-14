@@ -1,21 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- File: app/src/main/res/values/strings.xml -->
 <resources>
     <string name="app_name">ProBilliards AI</string>
     <string name="app_description">智能台球辅助系统</string>
-    
-    <!-- 主界面 -->
     <string name="start_assistant">启动辅助</string>
     <string name="stop_assistant">停止辅助</string>
     <string name="overlay_permission_status">悬浮窗权限：未开启</string>
     <string name="overlay_permission_granted">悬浮窗权限：已开启</string>
-    <string name="open_settings">打开设置</string>
-    <string name="calibrate">球桌校准</string>
-    
-    <!-- 使用说明 -->
-    <string name="usage_instructions">使用说明：\n1. 点击启动辅助\n2. 授权悬浮窗和屏幕录制权限\n3. 拖动悬浮球调整位置\n4. 点击悬浮球打开功能面板\n5. 长按悬浮球快速拖动</string>
-    
-    <!-- 控制面板 -->
+    <string name="usage_instructions">使用说明：\n1. 点击启动辅助\n2. 授权悬浮窗和屏幕录制权限\n3. 拖动悬浮球调整位置\n4. 点击悬浮球打开功能面板</string>
     <string name="main_line">主瞄准线</string>
     <string name="target_line">目标球延伸线</string>
     <string name="rebound_line">库边反弹线</string>
@@ -23,93 +14,6 @@
     <string name="ai_recommend">AI推荐路线</string>
     <string name="adjust_area">调整识别区域</string>
     <string name="close_overlay">关闭悬浮窗</string>
-    
-    <!-- 通知 -->
-    <string name="notification_channel_capture">屏幕采集服务</string>
-    <string name="notification_channel_capture_desc">ProBilliards AI 屏幕采集</string>
-    <string name="notification_channel_overlay">悬浮窗服务</string>
-    <string name="notification_channel_overlay_desc">ProBilliards AI 悬浮窗</string>
-    <string name="notification_capture_title">ProBilliards AI</string>
-    <string name="notification_capture_text">正在运行台球辅助</string>
-    <string name="notification_overlay_text">悬浮辅助正在运行</string>
-    
-    <!-- 提示信息 -->
-    <string name="permission_denied">用户拒绝了屏幕录制权限</string>
-    <string name="notification_permission_denied">通知权限被拒绝，可能影响服务运行</string>
-    <string name="overlay_permission_guide">请开启悬浮窗权限后返回</string>
-    <string name="overlay_permission_success">悬浮窗权限已授予</string>
-    <string name="overlay_permission_failed">悬浮窗权限未授予，无法启动辅助</string>
-    <string name="screen_capture_failed">无法启动屏幕录制</string>
-    <string name="assistant_started">ProBilliards AI 已启动</string>
-    <string name="assistant_stopped">ProBilliards AI 已停止</string>
-    
-    <!-- 选择区域 -->
     <string name="confirm">确认</string>
     <string name="cancel">取消</string>
-    
-    <!-- 设置页 -->
-    <string name="settings_title">设置</string>
-    <string name="line_settings">辅助线设置</string>
-    <string name="main_line_color">主瞄准线颜色</string>
-    <string name="target_line_color">目标球延伸线颜色</string>
-    <string name="rebound_line_color">库边反弹线颜色</string>
-    <string name="ai_line_color">AI推荐路线颜色</string>
-    <string name="line_width">线条粗细</string>
-    <string name="line_alpha">线条透明度</string>
-    <string name="ai_settings">AI设置</string>
-    <string name="ai_mode">AI模式</string>
-    <string name="ai_mode_balanced">平衡模式</string>
-    <string name="ai_mode_offensive">进攻模式</string>
-    <string name="ai_mode_defensive">防守模式</string>
-    <string name="frame_rate_mode">处理帧率</string>
-    <string name="frame_rate_fast">快速模式(30fps)</string>
-    <string name="frame_rate_normal">普通模式(20fps)</string>
-    <string name="frame_rate_power_saving">省电模式(15fps)</string>
-    <string name="save_settings">保存设置</string>
-    <string name="reset_default">重置默认</string>
-    <string name="settings_saved">设置已保存</string>
-    <string name="settings_reset">设置已重置</string>
-    
-    <!-- 校准引导 -->
-    <string name="calibration_title">球桌校准引导</string>
-    <string name="calibration_step1">步骤1：将手机对准球桌，确保球桌完整出现在屏幕中</string>
-    <string name="calibration_step2">步骤2：调整识别区域，框选球桌范围</string>
-    <string name="calibration_step3">步骤3：点击自动校准，系统将自动检测球桌颜色</string>
-    <string name="auto_calibrate">自动校准</string>
-    <string name="next">下一步</string>
-    <string name="finish">完成</string>
-    <string name="skip">跳过</string>
-    <string name="calibration_complete">自动校准完成</string>
-    
-    <!-- AI信息 -->
-    <string name="shot_probability">进球概率</string>
-    <string name="suggested_power">建议力度</string>
-    <string name="suggested_cue">建议杆法</string>
-    <string name="shot_mode">模式</string>
-    <string name="offensive">进攻</string>
-    <string name="defensive">防守</string>
-    <string name="safety">安全球</string>
-    
-    <!-- 杆法 -->
-    <string name="cue_center">中杆</string>
-    <string name="cue_top">高杆</string>
-    <string name="cue_bottom">低杆</string>
-    <string name="cue_left">左塞</string>
-    <string name="cue_right">右塞</string>
-    <string name="cue_top_left">高杆左塞</string>
-    <string name="cue_top_right">高杆右塞</string>
-    <string name="cue_bottom_left">低杆左塞</string>
-    <string name="cue_bottom_right">低杆右塞</string>
-    
-    <!-- 颜色 -->
-    <string name="color_orange">橙色</string>
-    <string name="color_red">红色</string>
-    <string name="color_yellow">黄色</string>
-    <string name="color_green">绿色</string>
-    <string name="color_blue">蓝色</string>
-    <string name="color_white">白色</string>
-    <string name="color_gold">金色</string>
-    
-    <!-- 快速拖动提示 -->
-    <string name="quick_drag_mode">快速拖动模式</string>
 </resources>
