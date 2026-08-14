@@ -35,10 +35,12 @@ jobs:
         echo "=== 解压 ==="
         unzip -q opencv.zip
         
+        # 清理旧 libs，确保没有残留
+        rm -rf app/libs
         mkdir -p app/libs
         mkdir -p app/src/main/jniLibs
         
-        # 查找 JAR 并重命名为 opencv-java4.jar
+        # 查找 JAR
         JAR_PATH=""
         if [ -f "OpenCV-android-sdk/sdk/java/opencv-java4.jar" ]; then
           JAR_PATH="OpenCV-android-sdk/sdk/java/opencv-java4.jar"
@@ -50,12 +52,14 @@ jobs:
         
         if [ -n "$JAR_PATH" ] && [ -f "$JAR_PATH" ]; then
           cp "$JAR_PATH" app/libs/opencv-java4.jar
-          echo "=== JAR 复制成功（重命名为 opencv-java4.jar） ==="
-          # 验证 JAR 内容
-          echo "=== 验证 JAR 内容（列出部分类） ==="
-          jar tf app/libs/opencv-java4.jar | grep -E "org/opencv/(core|imgproc|objdetect)" | head -20
+          echo "✅ JAR 复制成功"
+          # 验证 JAR 包含 OpenCV 类
+          echo "=== JAR 内容预览（org/opencv 相关） ==="
+          jar tf app/libs/opencv-java4.jar | grep "org/opencv" | head -10 || echo "⚠️ 未找到 org/opencv 类，JAR 可能不完整"
+          echo "=== JAR 文件大小 ==="
+          ls -lh app/libs/opencv-java4.jar
         else
-          echo "!!! 未找到 JAR 文件 !!!"
+          echo "❌ 未找到 JAR 文件"
           exit 1
         fi
         
@@ -63,31 +67,30 @@ jobs:
         NATIVE_DIR="OpenCV-android-sdk/sdk/native/libs"
         if [ -d "$NATIVE_DIR" ]; then
           cp -r "$NATIVE_DIR"/* app/src/main/jniLibs/
-          echo "=== Native 库复制成功 ==="
+          echo "✅ Native 库复制成功"
+          echo "=== Native 库列表 ==="
+          ls -la app/src/main/jniLibs/
         else
+          echo "⚠️ 未找到 Native 库，尝试查找..."
           NATIVE_DIR=$(find OpenCV-android-sdk -path "*/native/libs" -type d | head -n 1)
           if [ -n "$NATIVE_DIR" ]; then
             cp -r "$NATIVE_DIR"/* app/src/main/jniLibs/
-            echo "=== Native 库复制成功（通过查找） ==="
+            echo "✅ Native 库复制成功（通过查找）"
           else
-            echo "!!! 未找到 Native 库 !!!"
+            echo "❌ 未找到 Native 库"
           fi
         fi
         
-        echo "=== 验证 app/libs ==="
+        echo "=== 最终验证 app/libs ==="
         ls -la app/libs/
-        if [ -f "app/libs/opencv-java4.jar" ]; then
-          echo "✅ opencv-java4.jar 存在，大小：$(du -h app/libs/opencv-java4.jar | cut -f1)"
-        else
-          echo "❌ opencv-java4.jar 不存在"
-          exit 1
-        fi
-        echo "=== 验证 jniLibs ==="
-        ls -la app/src/main/jniLibs/ || echo "jniLibs 不存在"
     
     - name: Build Debug APK
       run: |
-        gradle clean --no-daemon
+        # 先检查文件是否存在
+        echo "=== 构建前验证 ==="
+        ls -la app/libs/ || echo "app/libs 不存在"
+        # 清理并构建
+        gradle clean --no-daemon --stacktrace
         gradle assembleDebug --no-daemon --stacktrace --refresh-dependencies
     
     - name: Upload APK
