@@ -29,27 +29,27 @@ android {
             isMinifyEnabled = false
         }
     }
-    
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    
+
     kotlinOptions {
         jvmTarget = "17"
     }
-    
+
     buildFeatures {
         viewBinding = true
         dataBinding = true
     }
-    
+
     sourceSets {
         getByName("main") {
             jniLibs.srcDirs("src/main/jniLibs")
         }
     }
-    
+
     packaging {
         jniLibs {
             useLegacyPackaging = true
@@ -68,17 +68,17 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-    
+
     // Hilt
     implementation("com.google.dagger:hilt-android:2.48")
     kapt("com.google.dagger:hilt-compiler:2.48")
-    
+
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
-    
-    // OpenCV via JitPack（第三方封装，版本号对应 OpenCV 官方）
-    implementation("com.github.quickbirdstudios:opencv:4.9.0")
-    
+
+    // OpenCV - 使用本地 jar（由 workflow 自动下载并复制）
+    implementation(files("libs/opencv-java4.jar"))
+
     // CardView
     implementation("androidx.cardview:cardview:1.0.0")
 }
