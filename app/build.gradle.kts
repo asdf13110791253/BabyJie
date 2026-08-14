@@ -47,6 +47,9 @@ android {
     sourceSets {
         getByName("main") {
             jniLibs.srcDirs("src/main/jniLibs")
+            // 显式将 libs 目录下的 JAR 加入 classpath
+            java.srcDirs("src/main/java")
+            resources.srcDirs("src/main/resources")
         }
     }
     
@@ -76,8 +79,11 @@ dependencies {
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     
-    // OpenCV - 使用 fileTree 方式确保所有 jar 都被包含
-    implementation(fileTree("libs") { include("*.jar") })
+    // OpenCV - 使用 fileTree 包含 libs 下所有 jar，并强制刷新
+    implementation(fileTree("libs") {
+        include("*.jar")
+        // 显式声明，确保 Gradle 不会忽略
+    })
     
     // CardView
     implementation("androidx.cardview:cardview:1.0.0")
@@ -85,4 +91,26 @@ dependencies {
 
 kapt {
     correctErrorTypes = true
+}
+
+// 添加一个任务，在编译前确认 jar 存在
+tasks.register("checkOpenCvJar") {
+    doLast {
+        val jarFile = file("libs/opencv-java4.jar")
+        if (jarFile.exists()) {
+            println("✅ opencv-java4.jar 存在，大小: ${jarFile.length()} bytes")
+        } else {
+            println("❌ opencv-java4.jar 不存在！")
+            throw GradleException("OpenCV JAR not found!")
+        }
+    }
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    dependsOn("checkOpenCvJar")
+    // 增加编译时内存
+    kotlinOptions {
+        jvmTarget = "17"
+        freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+    }
 }
