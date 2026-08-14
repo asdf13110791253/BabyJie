@@ -1,7 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- File: app/src/main/res/drawable/button_rose_selector.xml -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:state_pressed="true" android:drawable="@drawable/button_rose_pressed" />
-    <item android:state_enabled="false" android:drawable="@drawable/button_disabled" />
-    <item android:drawable="@drawable/button_rose_gradient" />
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/button_rose_pressed" />
+            <corners android:radius="12dp" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="45"
+                android:startColor="@color/button_rose_start"
+                android:endColor="@color/button_rose_end" />
+            <corners android:radius="12dp" />
+        </shape>
+    </item>
 </selector>
