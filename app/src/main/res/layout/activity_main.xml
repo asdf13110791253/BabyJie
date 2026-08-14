@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- File: app/src/main/res/layout/activity_main.xml -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -7,16 +6,7 @@
     android:gravity="center"
     android:padding="24dp"
     android:background="@color/dark_background">
-    
-    <!-- 装饰性光晕 -->
-    <View
-        android:layout_width="200dp"
-        android:layout_height="200dp"
-        android:background="@drawable/glow_background"
-        android:layout_gravity="center"
-        android:layout_marginTop="-400dp" />
-    
-    <!-- 应用图标 -->
+
     <ImageView
         android:layout_width="100dp"
         android:layout_height="100dp"
@@ -24,8 +14,7 @@
         android:layout_marginBottom="24dp"
         android:contentDescription="@string/app_name"
         android:alpha="0.9" />
-    
-    <!-- 应用名称 -->
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -34,8 +23,7 @@
         android:textStyle="bold"
         android:textColor="@color/rose_pink"
         android:layout_marginBottom="8dp" />
-    
-    <!-- 应用描述 -->
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -43,8 +31,7 @@
         android:textSize="16sp"
         android:textColor="@color/text_secondary"
         android:layout_marginBottom="32dp" />
-    
-    <!-- 权限状态 -->
+
     <TextView
         android:id="@+id/tvOverlayStatus"
         android:layout_width="wrap_content"
@@ -53,8 +40,7 @@
         android:textSize="14sp"
         android:textColor="@color/text_secondary"
         android:layout_marginBottom="24dp" />
-    
-    <!-- 启动按钮（玫瑰粉渐变） -->
+
     <Button
         android:id="@+id/btnStartAssistant"
         android:layout_width="match_parent"
@@ -65,8 +51,7 @@
         android:textColor="@color/text_on_rose"
         android:padding="12dp"
         android:textStyle="bold" />
-    
-    <!-- 停止按钮 -->
+
     <Button
         android:id="@+id/btnStopAssistant"
         android:layout_width="match_parent"
@@ -77,32 +62,7 @@
         android:backgroundTint="@color/rose_pink_dark"
         android:textColor="@color/text_on_rose"
         android:padding="12dp" />
-    
-    <!-- 设置按钮 -->
-    <Button
-        android:id="@+id/btnOpenSettings"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:text="@string/open_settings"
-        android:textSize="16sp"
-        android:backgroundTint="@color/dark_background_tertiary"
-        android:textColor="@color/text_secondary"
-        android:padding="12dp" />
-    
-    <!-- 校准按钮 -->
-    <Button
-        android:id="@+id/btnCalibrate"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:text="@string/calibrate"
-        android:textSize="16sp"
-        android:backgroundTint="@color/dark_background_tertiary"
-        android:textColor="@color/champagne_gold"
-        android:padding="12dp" />
-    
-    <!-- 使用说明 -->
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -111,5 +71,5 @@
         android:textSize="12sp"
         android:textColor="@color/text_tertiary"
         android:gravity="center" />
-    
+
 </LinearLayout>
