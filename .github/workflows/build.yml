@@ -35,10 +35,10 @@ jobs:
         echo "=== 解压 ==="
         unzip -q opencv.zip
         
-        # 确保 app/libs 目录存在
         mkdir -p app/libs
+        mkdir -p app/src/main/jniLibs
         
-        # 查找 JAR（优先标准路径）
+        # 查找 JAR 并重命名复制
         JAR_PATH=""
         if [ -f "OpenCV-android-sdk/sdk/java/opencv-java4.jar" ]; then
           JAR_PATH="OpenCV-android-sdk/sdk/java/opencv-java4.jar"
@@ -49,38 +49,45 @@ jobs:
         fi
         
         if [ -n "$JAR_PATH" ] && [ -f "$JAR_PATH" ]; then
-          # 关键：复制时重命名为 opencv-java4.jar，与 build.gradle 中的依赖匹配
           cp "$JAR_PATH" app/libs/opencv-java4.jar
           echo "=== JAR 复制成功（重命名为 opencv-java4.jar） ==="
         else
-          echo "!!! 未找到任何 JAR 文件，构建将失败 !!!"
+          echo "!!! 未找到 JAR 文件 !!!"
           exit 1
         fi
         
-        # 复制 native 库（使用标准路径）
-        mkdir -p app/src/main/jniLibs
+        # 复制 Native 库（使用标准路径）
         NATIVE_DIR="OpenCV-android-sdk/sdk/native/libs"
         if [ -d "$NATIVE_DIR" ]; then
           cp -r "$NATIVE_DIR"/* app/src/main/jniLibs/
           echo "=== Native 库复制成功 ==="
         else
-          # 备用查找
           NATIVE_DIR=$(find OpenCV-android-sdk -path "*/native/libs" -type d | head -n 1)
           if [ -n "$NATIVE_DIR" ]; then
             cp -r "$NATIVE_DIR"/* app/src/main/jniLibs/
             echo "=== Native 库复制成功（通过查找） ==="
           else
-            echo "!!! 未找到 Native 库目录，构建可能失败 !!!"
+            echo "!!! 未找到 Native 库 !!!"
           fi
         fi
         
+        # 验证文件
         echo "=== 验证 app/libs ==="
         ls -la app/libs/
+        if [ -f "app/libs/opencv-java4.jar" ]; then
+          echo "opencv-java4.jar 存在，大小：$(du -h app/libs/opencv-java4.jar | cut -f1)"
+        else
+          echo "!!! opencv-java4.jar 不存在，构建将失败 !!!"
+          exit 1
+        fi
         echo "=== 验证 jniLibs ==="
-        ls -la app/src/main/jniLibs/ || echo "jniLibs 不存在或为空"
+        ls -la app/src/main/jniLibs/ || echo "jniLibs 不存在"
     
-    - name: Build Debug APK
-      run: gradle assembleDebug --no-daemon --stacktrace
+    - name: Clean and Build Debug APK
+      run: |
+        # 清理并强制刷新依赖，避免缓存问题
+        gradle clean --no-daemon
+        gradle assembleDebug --no-daemon --stacktrace --refresh-dependencies
     
     - name: Upload APK
       uses: actions/upload-artifact@v4
