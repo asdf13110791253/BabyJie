@@ -1,18 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- File: app/src/main/res/drawable/glow_background.xml -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="oval">
-    
-    <!-- 柔和光晕效果 -->
     <gradient
         android:type="radial"
         android:gradientRadius="100dp"
         android:startColor="#30E56997"
         android:centerColor="#15E56997"
         android:endColor="#00E56997" />
-    
     <size
         android:width="200dp"
         android:height="200dp" />
-    
 </shape>
