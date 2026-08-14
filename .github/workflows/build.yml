@@ -28,87 +28,9 @@ jobs:
       with:
         gradle-version: '8.2'
     
-    - name: Download and prepare OpenCV
-      run: |
-        echo "=== 下载 OpenCV Android SDK ==="
-        curl -L -o opencv.zip https://github.com/opencv/opencv/releases/download/4.9.0/opencv-4.9.0-android-sdk.zip
-        echo "=== 检查下载文件大小 ==="
-        ls -lh opencv.zip
-        echo "=== 解压 ==="
-        unzip -q opencv.zip
-        
-        # 清理旧 libs
-        rm -rf app/libs
-        mkdir -p app/libs
-        mkdir -p app/src/main/jniLibs
-        
-        echo "=== 查看 SDK 目录结构 ==="
-        ls -la OpenCV-android-sdk/
-        ls -la OpenCV-android-sdk/sdk/
-        ls -la OpenCV-android-sdk/sdk/java/ || echo "java 目录不存在"
-        
-        # 查找所有 JAR 文件
-        echo "=== 查找所有 JAR 文件 ==="
-        find OpenCV-android-sdk -name "*.jar" -type f -exec ls -lh {} \;
-        
-        # 优先尝试 opencv-490.jar（更可能是完整版）
-        JAR_PATH=""
-        if [ -f "OpenCV-android-sdk/sdk/java/opencv-490.jar" ]; then
-          JAR_PATH="OpenCV-android-sdk/sdk/java/opencv-490.jar"
-        elif [ -f "OpenCV-android-sdk/sdk/java/opencv-java4.jar" ]; then
-          JAR_PATH="OpenCV-android-sdk/sdk/java/opencv-java4.jar"
-        else
-          JAR_PATH=$(find OpenCV-android-sdk -name "*.jar" -type f | head -n 1)
-        fi
-        
-        if [ -z "$JAR_PATH" ] || [ ! -f "$JAR_PATH" ]; then
-          echo "❌ 未找到任何 JAR 文件"
-          exit 1
-        fi
-        
-        echo "=== 候选 JAR: $JAR_PATH ==="
-        ls -lh "$JAR_PATH"
-        
-        # 验证 JAR 是否包含 OpenCV 类
-        echo "=== 验证 JAR 内容（查找 org/opencv） ==="
-        jar tf "$JAR_PATH" | grep "org/opencv/core/Mat" || {
-          echo "❌ JAR 中未找到 org/opencv 类，可能是不完整的 JAR"
-          echo "=== 打印 JAR 文件列表（前 30 行） ==="
-          jar tf "$JAR_PATH" | head -30
-          echo "=== 当前目录 SDK 结构 ==="
-          find OpenCV-android-sdk -type f | head -50
-          exit 1
-        }
-        
-        echo "✅ JAR 验证通过，包含 OpenCV 类"
-        # 复制并重命名
-        cp "$JAR_PATH" app/libs/opencv-java4.jar
-        echo "✅ JAR 复制成功，大小：$(du -h app/libs/opencv-java4.jar | cut -f1)"
-        
-        # 复制 Native 库
-        NATIVE_DIR="OpenCV-android-sdk/sdk/native/libs"
-        if [ -d "$NATIVE_DIR" ]; then
-          cp -r "$NATIVE_DIR"/* app/src/main/jniLibs/
-          echo "✅ Native 库复制成功"
-          echo "=== Native 库列表 ==="
-          ls -la app/src/main/jniLibs/
-        else
-          echo "⚠️ 未找到 Native 库，尝试查找..."
-          NATIVE_DIR=$(find OpenCV-android-sdk -path "*/native/libs" -type d | head -n 1)
-          if [ -n "$NATIVE_DIR" ]; then
-            cp -r "$NATIVE_DIR"/* app/src/main/jniLibs/
-            echo "✅ Native 库复制成功（通过查找）"
-          else
-            echo "❌ 未找到 Native 库"
-          fi
-        fi
-        
-        echo "=== 最终验证 app/libs ==="
-        ls -la app/libs/
-    
     - name: Build Debug APK
       run: |
-        gradle clean --no-daemon --stacktrace
+        gradle clean --no-daemon
         gradle assembleDebug --no-daemon --stacktrace --refresh-dependencies
     
     - name: Upload APK
@@ -118,4 +40,3 @@ jobs:
         path: app/build/outputs/apk/debug/app-debug.apk
         retention-days: 30
         if-no-files-found: error
-  
