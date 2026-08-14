@@ -1,62 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- File: app/src/main/res/values/themes.xml -->
 <resources>
-    <!-- 暗夜玫瑰主题 -->
     <style name="Theme.ProBilliards" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- 主色 -->
         <item name="colorPrimary">@color/rose_pink</item>
         <item name="colorPrimaryDark">@color/dark_background</item>
         <item name="colorPrimaryVariant">@color/rose_pink_dark</item>
         <item name="colorOnPrimary">@color/text_on_rose</item>
-        
-        <!-- 次级色 -->
         <item name="colorSecondary">@color/champagne_gold</item>
         <item name="colorSecondaryVariant">@color/champagne_gold_dark</item>
         <item name="colorOnSecondary">@color/text_on_gold</item>
-        
-        <!-- 强调色 -->
         <item name="colorAccent">@color/rose_pink</item>
-        
-        <!-- 背景色 -->
         <item name="android:colorBackground">@color/dark_background</item>
         <item name="colorSurface">@color/dark_background_card</item>
         <item name="colorOnSurface">@color/text_primary</item>
-        
-        <!-- 状态栏和导航栏 -->
         <item name="android:statusBarColor">@color/status_bar_color</item>
         <item name="android:navigationBarColor">@color/navigation_bar_color</item>
         <item name="android:windowBackground">@color/dark_background</item>
-        
-        <!-- 窗口特性 -->
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowLightNavigationBar">false</item>
-        
-        <!-- 文本颜色 -->
         <item name="android:textColorPrimary">@color/text_primary</item>
         <item name="android:textColorSecondary">@color/text_secondary</item>
         <item name="android:textColorTertiary">@color/text_tertiary</item>
-        
-        <!-- 按钮样式 -->
-        <item name="materialButtonStyle">@style/Widget.ProBilliards.Button</item>
-    </style>
-    
-    <!-- 按钮样式 -->
-    <style name="Widget.ProBilliards.Button" parent="Widget.Material3.Button">
-        <item name="backgroundTint">@color/button_rose_start</item>
-        <item name="android:textColor">@color/text_on_rose</item>
-        <item name="cornerRadius">12dp</item>
-    </style>
-    
-    <!-- 卡片样式 -->
-    <style name="Widget.ProBilliards.Card" parent="Widget.Material3.CardView.Elevated">
-        <item name="cardBackgroundColor">@color/dark_background_card</item>
-        <item name="cardCornerRadius">16dp</item>
-        <item name="cardElevation">8dp</item>
-    </style>
-    
-    <!-- 开关样式 -->
-    <style name="Widget.ProBilliards.Switch" parent="Widget.Material3.CompoundButton.Switch">
-        <item name="thumbTint">@color/switch_thumb_active</item>
-        <item name="trackTint">@color/switch_track_active</item>
     </style>
 </resources>
